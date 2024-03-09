@@ -1,0 +1,31 @@
+<section>
+  <div class="container mt-4">
+    <div class="row">
+    </div>
+    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+      <a href="/admin/add-product" class="btn btn-success">Add Product</a>
+    </div>
+    <table class="table mt-4">
+      <thead>
+        <tr>
+          <th scope="col">No.</th>
+          <th scope="col">Name</th>
+          <th scope="col">Category</th>
+          <th scope="col">Description</th>
+          <th scope="col">Image</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each products}}
+          <tr>
+            <th scope="row">{{@index}}</th>
+            <td>{{this.name}}</td>
+            <td>{{this.category}}</td>
+            <td>{{this.description}}</td>
+            <td><img src="{{this.imgUrl}}" alt="" style="width:50px; height: 50px;" /></td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</section>

@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
 
-/* GET home page. */
+/* GET users listing. */
 router.get("/", function (req, res, next) {
   let products = [
     {
@@ -31,8 +31,14 @@ router.get("/", function (req, res, next) {
         "https://www.myorderstore.com/image/cache/catalog/Products/Products/delloptiplex3020pc0-550x550w.jpg.webp",
     },
   ];
-
-  res.render("index", { products, admin: true });
+  res.render("admin/view-products", { products, admin: true });
+});
+router.get("/add-product", (req, res, next) => {
+  res.render("admin/add-product", { admin: true });
+});
+router.post("/add-product", (req, res) => {
+  console.log(req.body);
+  console.log(req.files.image);
 });
 
 module.exports = router;
