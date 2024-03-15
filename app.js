@@ -7,11 +7,15 @@ var logger = require("morgan");
 const helpers = require("handlebars-helpers")();
 const fileUpload = require("express-fileupload");
 
+const db = require("./config/connection");
+
 var userRouter = require("./routes/user");
 var adminRouter = require("./routes/admin");
 
 var app = express();
 
+// view engine setup
+app.set("views", path.join(__dirname, "views"));
 const hbs = handlebars.create({
   extname: "hbs",
   defaultLayout: "layout",
@@ -19,9 +23,6 @@ const hbs = handlebars.create({
   helpers: helpers,
   partialsDir: path.join(__dirname, "views/partials"),
 });
-
-// view engine setup
-app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "hbs");
 app.engine("hbs", hbs.engine);
 
@@ -31,6 +32,11 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 app.use(fileUpload());
+
+db.connect(err => {
+  if (err) console.log("Database connection error", err);
+  else console.log("Database connection success");
+});
 
 app.use("/", userRouter);
 app.use("/admin", adminRouter);
