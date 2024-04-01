@@ -28,4 +28,33 @@ module.exports = {
         });
     });
   },
+  getProductDetails: prodId => {
+    return new Promise(async (resolve, reject) => {
+      let product = await db
+        .get()
+        .collection(collections.PRODUCT_COLLECTION)
+        .findOne({ _id: new ObjectId(prodId) });
+      resolve(product);
+    });
+  },
+  updateProduct: (prodId, prodDetails) => {
+    return new Promise(async (resolve, reject) => {
+      db.get()
+        .collection(collections.PRODUCT_COLLECTION)
+        .updateOne(
+          { _id: new ObjectId(prodId) },
+          {
+            $set: {
+              name: prodDetails.name,
+              category: prodDetails.category,
+              description: prodDetails.description,
+              price: prodDetails.price,
+            },
+          }
+        )
+        .then(response => {
+          resolve();
+        });
+    });
+  },
 };

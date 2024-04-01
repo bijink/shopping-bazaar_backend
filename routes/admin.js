@@ -16,7 +16,6 @@ router.get("/add-product", (req, res, next) => {
 router.post("/add-product", (req, res) => {
   // console.log(req.body);
   // console.log(req.files.Image);
-
   productHelpers.addProduct(req.body, id => {
     // console.log("ID:: ", id);
     let image = req.files.Image;
@@ -27,12 +26,8 @@ router.post("/add-product", (req, res) => {
     });
   });
 });
-// router.get("/delete-product/:id", (req, res) => {
-//   let prodId = req.params.id;
-//   console.log(prodId);
-// });
-router.get("/delete-product", (req, res) => {
-  let prodId = req.query.id;
+router.get("/delete-product/:id", (req, res) => {
+  let prodId = req.params.id;
   // console.log(prodId);
   productHelpers.deleteProduct(prodId).then(response => {
     console.log(response);
@@ -41,6 +36,22 @@ router.get("/delete-product", (req, res) => {
       if (!err) res.redirect("/admin");
       else console.log(err);
     });
+  });
+});
+router.get("/edit-product", async (req, res, next) => {
+  let prodId = req.query.id;
+  let product = await productHelpers.getProductDetails(prodId);
+  // console.log(product);
+  res.render("admin/edit-product", { admin: true, product });
+});
+router.post("/edit-product/:id", (req, res) => {
+  let prodId = req.params.id;
+  productHelpers.updateProduct(prodId, req.body).then(() => {
+    res.redirect("/admin");
+    let image = req.files.Image;
+    if (image) {
+      image.mv("./public/images/product-images/" + prodId + ".png");
+    }
   });
 });
 

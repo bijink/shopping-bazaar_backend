@@ -32,9 +32,12 @@ router.get("/signup", (req, res) => {
   res.render("user/signup");
 });
 router.post("/signup", (req, res) => {
-  // res.render("user/signup");
-  userHelpers.doSignup(req.body).then(res => {
-    console.log(res);
+  userHelpers.doSignup(req.body).then(response => {
+    console.log("User signed up");
+    // console.log("USER_SIGNUP_RES:: ", response);
+    req.session.loggedIn = true;
+    req.session.user = response.user;
+    res.redirect("/");
   });
 });
 router.post("/login", (req, res) => {

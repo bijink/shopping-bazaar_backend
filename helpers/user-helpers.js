@@ -6,17 +6,16 @@ module.exports = {
   doSignup: userData => {
     return new Promise(async (resolve, reject) => {
       userData.password = await bcrypt.hash(userData.password, 10);
-      db.get()
+      let insertRes = await db.get().collection(collections.USER_COLLECTION).insertOne(userData);
+      let user = await db
+        .get()
         .collection(collections.USER_COLLECTION)
-        .insertOne(userData)
-        .then(data => {
-          resolve("user signed up", data);
-        });
+        .findOne({ _id: insertRes.insertedId });
+      resolve({ user });
     });
   },
   doLogin: userData => {
     return new Promise(async (resolve, reject) => {
-      let loginStatus = false;
       let user = await db
         .get()
         .collection(collections.USER_COLLECTION)
