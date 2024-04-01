@@ -8,7 +8,7 @@ module.exports = {
       .collection(collections.PRODUCT_COLLECTION)
       .insertOne(product)
       .then(data => {
-        console.log("DATA:: ", data);
+        console.log("ADDED_PRODUCT_DATA:: ", data);
         callback(data.insertedId.toString());
       });
   },

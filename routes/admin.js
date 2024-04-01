@@ -1,5 +1,6 @@
 var express = require("express");
 var router = express.Router();
+const fs = require("fs");
 const productHelpers = require("../helpers/product-helpers");
 
 /* GET users listing. */
@@ -19,6 +20,7 @@ router.post("/add-product", (req, res) => {
   productHelpers.addProduct(req.body, id => {
     // console.log("ID:: ", id);
     let image = req.files.Image;
+    // Add image
     image.mv("./public/images/product-images/" + id + ".png", (err, done) => {
       if (!err) res.render("admin/add-product", { admin: true });
       else console.log(err);
@@ -33,8 +35,12 @@ router.get("/delete-product", (req, res) => {
   let prodId = req.query.id;
   // console.log(prodId);
   productHelpers.deleteProduct(prodId).then(response => {
-    // console.log(response);
-    res.redirect("/admin");
+    console.log(response);
+    // Delete the file
+    fs.unlink("./public/images/product-images/" + prodId + ".png", err => {
+      if (!err) res.redirect("/admin");
+      else console.log(err);
+    });
   });
 });
 
