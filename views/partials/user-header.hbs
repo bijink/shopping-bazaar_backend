@@ -19,7 +19,12 @@
             <a class="nav-link active" aria-current="page" href="/">Products</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/cart">Cart</a>
+            <a class="nav-link" href="/cart">Cart
+              <span
+                id="cart-count"
+                class="badge badge-dark"
+                style="background-color: grey;"
+              >{{cartCount}}</span></a>
           </li>
           {{#if user}}
             <li class="nav-item">

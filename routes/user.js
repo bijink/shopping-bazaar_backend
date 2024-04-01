@@ -12,12 +12,15 @@ const verifyLogin = (req, res, next) => {
 };
 
 /* GET home page. */
-router.get("/", function (req, res, next) {
+router.get("/", async function (req, res, next) {
   let user = req.session.user;
-  // console.log(req.session.user);
+  let cartCount = null;
+  if (user) {
+    cartCount = await userHelpers.getCartCount(user._id);
+  }
   productHelpers.getAllProducts().then(products => {
     // console.log("PRODUCTS:: ", products);
-    res.render("user/view-products", { products, admin: false, user });
+    res.render("user/view-products", { products, admin: false, user, cartCount });
   });
 });
 router.get("/login", (req, res) => {
@@ -58,16 +61,19 @@ router.get("/logout", (req, res) => {
   res.redirect("/");
 });
 router.get("/cart", verifyLogin, async (req, res) => {
+  let user = req.session.user;
   let userId = req.session.user._id;
   let products = await userHelpers.getCartProducts(userId);
-  console.log(products);
-  res.render("user/cart");
+  // console.log(products);
+  res.render("user/cart", { products, admin: false, user });
 });
 router.get("/add-to-cart/:prodId", verifyLogin, (req, res) => {
   let prodId = req.params.prodId;
   let userId = req.session.user._id;
+  // console.log("api called");
   userHelpers.addToCart(prodId, userId).then(() => {
-    res.redirect("/");
+    // res.redirect("/");
+    res.json({ status: true });
   });
 });
 
