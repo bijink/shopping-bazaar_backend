@@ -57,8 +57,18 @@ router.get("/logout", (req, res) => {
   req.session.destroy();
   res.redirect("/");
 });
-router.get("/cart", verifyLogin, (req, res) => {
+router.get("/cart", verifyLogin, async (req, res) => {
+  let userId = req.session.user._id;
+  let products = await userHelpers.getCartProducts(userId);
+  console.log(products);
   res.render("user/cart");
+});
+router.get("/add-to-cart/:prodId", verifyLogin, (req, res) => {
+  let prodId = req.params.prodId;
+  let userId = req.session.user._id;
+  userHelpers.addToCart(prodId, userId).then(() => {
+    res.redirect("/");
+  });
 });
 
 module.exports = router;
