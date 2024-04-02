@@ -39,22 +39,42 @@ module.exports = {
   },
   addToCart: (prodId, userId) => {
     // console.log(prodId, userId);
+    let prodObj = {
+      item: new ObjectId(prodId),
+      quantity: 1,
+    };
     return new Promise(async (resolve, reject) => {
       let userCart = await db
         .get()
         .collection(collections.CART_COLLECTION)
         .findOne({ user: new ObjectId(userId) });
       if (userCart) {
-        db.get()
-          .collection(collections.CART_COLLECTION)
-          .updateOne({ user: new ObjectId(userId) }, { $push: { products: new ObjectId(prodId) } })
-          .then(() => {
-            resolve();
-          });
+        let prodExist = userCart.products.findIndex(prod => prod.item == prodId);
+        // console.log(prodExist);
+        if (prodExist != -1) {
+          db.get()
+            .collection(collections.CART_COLLECTION)
+            .updateOne(
+              { "products.item": new ObjectId(prodId) },
+              {
+                $inc: { "products.$.quantity": 1 },
+              }
+            )
+            .then(() => {
+              resolve();
+            });
+        } else {
+          db.get()
+            .collection(collections.CART_COLLECTION)
+            .updateOne({ user: new ObjectId(userId) }, { $push: { products: prodObj } })
+            .then(() => {
+              resolve();
+            });
+        }
       } else {
         let cartObj = {
           user: new ObjectId(userId),
-          products: [new ObjectId(prodId)],
+          products: [prodObj],
         };
         db.get()
           .collection(collections.CART_COLLECTION)
@@ -74,21 +94,43 @@ module.exports = {
           {
             $match: { user: new ObjectId(userId) },
           },
+          // {
+          //   $lookup: {
+          //     from: collections.PRODUCT_COLLECTION,
+          //     let: { prodList: "$products" },
+          //     pipeline: [
+          //       {
+          //         $match: { $expr: { $in: ["$_id", "$$prodList"] } },
+          //       },
+          //     ],
+          //     as: "cartList",
+          //   },
+          // },
+          {
+            $unwind: "$products",
+          },
+          {
+            $project: {
+              // user: "$user",
+              productId: "$products.item",
+              quantity: "$products.quantity",
+            },
+          },
           {
             $lookup: {
               from: collections.PRODUCT_COLLECTION,
-              let: { prodList: "$products" },
-              pipeline: [
-                {
-                  $match: { $expr: { $in: ["$_id", "$$prodList"] } },
-                },
-              ],
-              as: "cartList",
+              localField: "productId",
+              foreignField: "_id",
+              as: "productDetails",
             },
+          },
+          {
+            $unwind: "$productDetails",
           },
         ])
         .toArray();
-      resolve(cartItems[0]?.cartList);
+      // console.log(cartItems);
+      resolve(cartItems);
     });
   },
   getCartCount: userId => {
