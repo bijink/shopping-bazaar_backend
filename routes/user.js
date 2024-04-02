@@ -72,8 +72,13 @@ router.get("/add-to-cart/:prodId", verifyLogin, (req, res) => {
   let userId = req.session.user._id;
   // console.log("api called");
   userHelpers.addToCart(prodId, userId).then(() => {
-    // res.redirect("/");
     res.json({ status: true });
+  });
+});
+router.post("/change-cart-item-quantity", (req, res) => {
+  userHelpers.changeCartItemQuantity(req.body).then(response => {
+    // console.log("Res::", response);
+    res.json({ status: true, countValue: response.count });
   });
 });
 

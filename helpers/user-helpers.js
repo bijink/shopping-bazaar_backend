@@ -55,7 +55,7 @@ module.exports = {
           db.get()
             .collection(collections.CART_COLLECTION)
             .updateOne(
-              { "products.item": new ObjectId(prodId) },
+              { user: new ObjectId(userId), "products.item": new ObjectId(prodId) },
               {
                 $inc: { "products.$.quantity": 1 },
               }
@@ -112,24 +112,32 @@ module.exports = {
           {
             $project: {
               // user: "$user",
-              productId: "$products.item",
+              // #item means 'productId'
+              item: "$products.item",
               quantity: "$products.quantity",
             },
           },
           {
             $lookup: {
               from: collections.PRODUCT_COLLECTION,
-              localField: "productId",
+              localField: "item",
               foreignField: "_id",
-              as: "productDetails",
+              as: "product",
             },
           },
+          // {
+          //   $unwind: "$product",
+          // },
           {
-            $unwind: "$productDetails",
+            $project: {
+              item: 1,
+              quantity: 1,
+              product: { $arrayElemAt: ["$product", 0] },
+            },
           },
         ])
         .toArray();
-      // console.log(cartItems);
+      console.log(cartItems);
       resolve(cartItems);
     });
   },
@@ -142,6 +150,22 @@ module.exports = {
         .findOne({ user: new ObjectId(userId) });
       if (cart) count = cart.products.length;
       resolve(count);
+    });
+  },
+  changeCartItemQuantity: ({ cartId, prodId, count }) => {
+    // console.log(cartId, prodId, count);
+    return new Promise(async (resolve, reject) => {
+      db.get()
+        .collection(collections.CART_COLLECTION)
+        .updateOne(
+          { _id: new ObjectId(cartId), "products.item": new ObjectId(prodId) },
+          {
+            $inc: { "products.$.quantity": Number(count) },
+          }
+        )
+        .then(response => {
+          resolve({ count: Number(count) });
+        });
     });
   },
 };
