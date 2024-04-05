@@ -61,14 +61,14 @@ module.exports = {
               }
             )
             .then(() => {
-              resolve();
+              resolve({ status: false });
             });
         } else {
           db.get()
             .collection(collections.CART_COLLECTION)
             .updateOne({ user: new ObjectId(userId) }, { $push: { products: prodObj } })
             .then(() => {
-              resolve();
+              resolve({ status: true });
             });
         }
       } else {
@@ -80,7 +80,7 @@ module.exports = {
           .collection(collections.CART_COLLECTION)
           .insertOne(cartObj)
           .then(() => {
-            resolve();
+            resolve({ status: true });
           });
       }
     });
@@ -137,7 +137,7 @@ module.exports = {
           },
         ])
         .toArray();
-      console.log(cartItems);
+      // console.log(cartItems);
       resolve(cartItems);
     });
   },
@@ -152,20 +152,53 @@ module.exports = {
       resolve(count);
     });
   },
-  changeCartItemQuantity: ({ cartId, prodId, count }) => {
-    // console.log(cartId, prodId, count);
+  removeFromCart: (userId, cartId, prodId) => {
     return new Promise(async (resolve, reject) => {
-      db.get()
+      let userCart = await db
+        .get()
         .collection(collections.CART_COLLECTION)
-        .updateOne(
-          { _id: new ObjectId(cartId), "products.item": new ObjectId(prodId) },
-          {
-            $inc: { "products.$.quantity": Number(count) },
-          }
-        )
-        .then(response => {
-          resolve({ count: Number(count) });
-        });
+        .findOne({ user: new ObjectId(userId) });
+      let productsLength = userCart.products.length;
+      if (productsLength > 1) {
+        db.get()
+          .collection(collections.CART_COLLECTION)
+          .updateOne(
+            { _id: new ObjectId(cartId) },
+            { $pull: { products: { item: new ObjectId(prodId) } } }
+          )
+          .then(res => {
+            resolve(res);
+          });
+      } else {
+        db.get()
+          .collection(collections.CART_COLLECTION)
+          .deleteOne({ _id: new ObjectId(cartId) })
+          .then(res => {
+            resolve(res);
+          });
+      }
+    });
+  },
+  changeCartItemQuantity: (cartId, prodId, quantity, count) => {
+    // console.log({ cartId, prodId, quantity, count });
+    quantity = Number(quantity);
+    count = Number(count);
+    return new Promise(async (resolve, reject) => {
+      if (quantity == 1 && count == -1) {
+        resolve({ itemRemove: true });
+      } else {
+        db.get()
+          .collection(collections.CART_COLLECTION)
+          .updateOne(
+            { _id: new ObjectId(cartId), "products.item": new ObjectId(prodId) },
+            {
+              $inc: { "products.$.quantity": count },
+            }
+          )
+          .then(response => {
+            resolve({ count });
+          });
+      }
     });
   },
 };

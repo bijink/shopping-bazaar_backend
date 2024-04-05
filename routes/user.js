@@ -71,14 +71,30 @@ router.get("/add-to-cart/:prodId", verifyLogin, (req, res) => {
   let prodId = req.params.prodId;
   let userId = req.session.user._id;
   // console.log("api called");
-  userHelpers.addToCart(prodId, userId).then(() => {
+  userHelpers.addToCart(prodId, userId).then(response => {
+    res.json({ status: response.status });
+  });
+});
+router.get("/remove-from-cart", (req, res) => {
+  let userId = req.session.user._id;
+  let { cartId, prodId } = req.query;
+  userHelpers.removeFromCart(userId, cartId, prodId).then(response => {
+    // console.log("Remove:: ", response);
     res.json({ status: true });
   });
 });
 router.post("/change-cart-item-quantity", (req, res) => {
-  userHelpers.changeCartItemQuantity(req.body).then(response => {
+  let userId = req.session.user._id;
+  let { cartId, prodId, quantity, count } = req.body;
+  userHelpers.changeCartItemQuantity(cartId, prodId, quantity, count).then(response => {
     // console.log("Res::", response);
-    res.json({ status: true, countValue: response.count });
+    if (response.itemRemove) {
+      userHelpers.removeFromCart(userId, cartId, prodId).then(() => {
+        res.json({ status: true, itemRemoved: true });
+      });
+    } else {
+      res.json({ status: true, countValue: response.count });
+    }
   });
 });
 

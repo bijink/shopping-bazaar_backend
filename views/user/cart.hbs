@@ -11,7 +11,7 @@
       </thead>
       <tbody>
         {{#each cartProducts}}
-          <tr>
+          <tr id="cart-list-item_{{this.product._id}}">
             <td>
               <img
                 src="/images/product-images/{{this.product._id}}.png"
@@ -22,7 +22,7 @@
             <td>{{this.product.name}}</td>
             <td>
               <button
-                id="cart-item-quantity-plus-button_{{this.product._id}}"
+                id="cart-item-quantity-minus-button_{{this.product._id}}"
                 class="cart-item-count mr-3"
                 onclick="changeCartItemQuantity('{{this._id}}', '{{this.product._id}}', -1)"
               >-</button>
@@ -33,7 +33,10 @@
               >+</button>
             </td>
             <td>
-              <a href="" class="btn btn-danger">Remove</a>
+              <button
+                class="btn btn-danger"
+                onclick="removeCartItem('{{this._id}}', '{{this.product._id}}')"
+              >Remove</button>
             </td>
           </tr>
         {{/each}}

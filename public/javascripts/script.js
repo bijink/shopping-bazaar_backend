@@ -12,26 +12,37 @@ function addToCart(prodId) {
   });
 }
 function changeCartItemQuantity(cartId, prodId, count) {
+  let quantityElement = $(`#cart-item-quantity_${prodId}`).html();
   $.ajax({
     url: "/change-cart-item-quantity",
     method: "post",
     data: {
       cartId,
       prodId,
+      quantity: parseInt(quantityElement),
       count,
     },
     success: res => {
       if (res.status) {
-        let quantity = $(`#cart-item-quantity_${prodId}`).html();
-        if (res.countValue == 1) quantity = parseInt(quantity) + 1;
-        else if (res.countValue == -1) quantity = parseInt(quantity) - 1;
-        $(`#cart-item-quantity_${prodId}`).html(quantity);
-        // alert(quantity);
-        if (parseInt(quantity) == 1) {
-          $(`#cart-item-quantity-plus-button_${prodId}`).css("visibility", "hidden");
+        if (res.itemRemoved) {
+          $(`#cart-list-item_${prodId}`).css("display", "none");
+          alert("Product removed from Cart");
         } else {
-          $(`#cart-item-quantity-plus-button_${prodId}`).css("visibility", "visible");
+          quantityElement = parseInt(quantityElement) + res.countValue;
+          $(`#cart-item-quantity_${prodId}`).html(quantityElement);
         }
+      }
+    },
+  });
+}
+function removeCartItem(cartId, prodId) {
+  $.ajax({
+    url: `/remove-from-cart?cartId=${cartId}&prodId=${prodId}`,
+    method: "get",
+    success: res => {
+      if (res.status) {
+        alert("Product removed from Cart");
+        $(`#cart-list-item_${prodId}`).css("display", "none");
       }
     },
   });
