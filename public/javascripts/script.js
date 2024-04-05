@@ -26,10 +26,12 @@ function changeCartItemQuantity(cartId, prodId, count) {
       if (res.status) {
         if (res.itemRemoved) {
           $(`#cart-list-item_${prodId}`).css("display", "none");
+          $(`#cart-total-amount`).html(res.cartTotalAmount);
           alert("Product removed from Cart");
         } else {
           quantityElement = parseInt(quantityElement) + res.countValue;
           $(`#cart-item-quantity_${prodId}`).html(quantityElement);
+          $(`#cart-total-amount`).html(res.cartTotalAmount);
         }
       }
     },
@@ -43,6 +45,7 @@ function removeCartItem(cartId, prodId) {
       if (res.status) {
         alert("Product removed from Cart");
         $(`#cart-list-item_${prodId}`).css("display", "none");
+        $(`#cart-total-amount`).html(res.cartTotalAmount);
       }
     },
   });

@@ -5,6 +5,7 @@
         <tr>
           <th scope="col">Item</th>
           <th scope="col">Title</th>
+          <th scope="col">Price</th>
           <th scope="col">Quantity</th>
           <th scope="col"></th>
         </tr>
@@ -20,6 +21,7 @@
               />
             </td>
             <td>{{this.product.name}}</td>
+            <td>{{this.product.price}}</td>
             <td>
               <button
                 id="cart-item-quantity-minus-button_{{this.product._id}}"
@@ -42,5 +44,12 @@
         {{/each}}
       </tbody>
     </table>
+    <div class="float-end mt-2" style="margin-right: 100px;">
+      <p class="fs-4">Total: &#8377;<span
+          class="fw-bold"
+          id="cart-total-amount"
+        >{{totalCartItemAmount}}</span></p>
+      <a href="/place-order" id="place-order-btn" class="btn btn-success float-end">Place order</a>
+    </div>
   </div>
 </section>
