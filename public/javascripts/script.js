@@ -25,14 +25,15 @@ function changeCartItemQuantity(cartId, prodId, count) {
     success: res => {
       if (res.status) {
         if (res.itemRemoved) {
+          // #user cart 'document || product_object' deleted
           $(`#cart-list-item_${prodId}`).css("display", "none");
-          $(`#cart-total-amount`).html(res.cartTotalAmount);
           alert("Product removed from Cart");
         } else {
-          quantityElement = parseInt(quantityElement) + res.countValue;
+          // #user cart product quantity change
+          quantityElement = parseInt(quantityElement) + parseInt(count);
           $(`#cart-item-quantity_${prodId}`).html(quantityElement);
-          $(`#cart-total-amount`).html(res.cartTotalAmount);
         }
+        $(`#cart-total-amount`).html(res.cartTotalAmount);
       }
     },
   });

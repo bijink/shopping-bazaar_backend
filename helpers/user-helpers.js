@@ -179,8 +179,8 @@ module.exports = {
       }
     });
   },
-  changeCartItemQuantity: (cartId, prodId, quantity, count) => {
-    // console.log({ cartId, prodId, quantity, count });
+  changeCartItemQuantity: (cartId, prodId, count) => {
+    // console.log({ cartId, prodId, count });
     return new Promise(async (resolve, reject) => {
       db.get()
         .collection(collections.CART_COLLECTION)
@@ -191,11 +191,11 @@ module.exports = {
           }
         )
         .then(response => {
-          resolve({ count });
+          resolve();
         });
     });
   },
-  getTotalAmount: userId => {
+  getCartTotalAmount: userId => {
     return new Promise(async (resolve, reject) => {
       let totalAmount = await db
         .get()
