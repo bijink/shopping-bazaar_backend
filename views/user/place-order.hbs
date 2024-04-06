@@ -1,7 +1,7 @@
 <section>
   <div class="container mt-5">
     <h2 class="mb-5">Enter delivery details</h2>
-    <form action="/user/place-order" method="post">
+    <form action="" method="" id="checkout-form">
       <div class="row d-flex justify-content-around">
         <div class="col-md-6">
           <div class="mb-2">
@@ -27,22 +27,29 @@
               <input
                 class="form-check-input"
                 type="radio"
-                name="flexRadio"
+                name="paymentMethod"
                 id="flexRadio1"
+                value="cod"
                 checked
               />
               <label class="form-check-label" for="flexRadio1">
-                COD
+                Cash On Delivery
               </label>
             </div>
             <div class="form-check">
-              <input class="form-check-input" type="radio" name="flexRadio" id="flexRadio2" />
+              <input
+                class="form-check-input"
+                type="radio"
+                name="paymentMethod"
+                id="flexRadio2"
+                value="online"
+              />
               <label class="form-check-label" for="flexRadio2">
-                Online payment
+                Online Payment
               </label>
             </div>
           </div>
-          <button type="submit" class="btn btn-primary float-end">Submit</button>
+          <button type="submit" class="btn btn-primary float-end">Checkout</button>
         </div>
       </div>
     </form>

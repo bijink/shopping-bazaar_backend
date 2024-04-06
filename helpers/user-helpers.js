@@ -241,4 +241,54 @@ module.exports = {
       resolve(totalAmount[0]?.total);
     });
   },
+  getCartProductList: userId => {
+    return new Promise(async (resolve, reject) => {
+      let cart = await db
+        .get()
+        .collection(collections.CART_COLLECTION)
+        .findOne({ user: new ObjectId(userId) });
+      resolve(cart.products);
+    });
+  },
+  placeOrder: (userId, orderData, products, totalAmount) => {
+    return new Promise((resolve, reject) => {
+      // console.log(userId, orderData, products, totalAmount);
+      let status = orderData.paymentMethod === "cod" ? "placed" : "pending";
+      let orderObj = {
+        userId: new ObjectId(userId),
+        deliveryDetails: {
+          address: orderData.address,
+          pincode: orderData.pincode,
+          mobile: orderData.mobile,
+        },
+        products,
+        totalAmount,
+        paymentMethod: orderData.paymentMethod,
+        status,
+        date: new Date(),
+      };
+      db.get()
+        .collection(collections.ORDER_COLLECTION)
+        .insertOne(orderObj)
+        .then(() => {
+          db.get()
+            .collection(collections.CART_COLLECTION)
+            .deleteOne({ user: new ObjectId(userId) })
+            .then(() => {
+              resolve({ orderStatus: orderObj.status });
+            });
+        });
+    });
+  },
+  getOrders: () => {
+    return new Promise(async (resolve, reject) => {
+      db.get()
+        .collection(collections.ORDER_COLLECTION)
+        .find()
+        .toArray()
+        .then(res => {
+          resolve(res);
+        });
+    });
+  },
 };

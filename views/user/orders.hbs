@@ -1,0 +1,14 @@
+<section>
+  <div class="container pt-4">
+    <p class="fs-2 fw-bold">Order list ({{orders.length}})</p>
+    <ul class="list-group list-group-flush">
+      {{#each orders}}
+        <li class="list-group-item">
+          <p class="fs-5">{{this.date}}</p>
+          <p class="">{{this.paymentMethod}}</p>
+          <p class="fs-5 fw-bold">&#8377; {{this.totalAmount}}</p>
+        </li>
+      {{/each}}
+    </ul>
+  </div>
+</section>
