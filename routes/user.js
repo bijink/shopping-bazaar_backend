@@ -119,10 +119,15 @@ router.get("/order-success", (req, res) => {
   res.render("user/order-success");
 });
 router.get("/orders", verifyLogin, (req, res) => {
-  userHelpers.getOrders().then(response => {
-    let user = req.session.user;
+  let user = req.session.user;
+  userHelpers.getOrders(user._id).then(response => {
     res.render("user/orders", { user, orders: response });
   });
+});
+router.get("/view-order-products/:orderId", verifyLogin, async (req, res) => {
+  let user = req.session.user;
+  let orderProducts = await userHelpers.getOrderProducts(req.params.orderId);
+  res.render("user/view-order-products", { user, orderProducts });
 });
 
 module.exports = router;

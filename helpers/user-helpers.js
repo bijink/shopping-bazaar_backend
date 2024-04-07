@@ -280,15 +280,56 @@ module.exports = {
         });
     });
   },
-  getOrders: () => {
+  getOrders: userId => {
     return new Promise(async (resolve, reject) => {
       db.get()
         .collection(collections.ORDER_COLLECTION)
         .find()
-        .toArray()
+        .sort({ date: -1 })
+        .toArray({ userId: new ObjectId(userId) })
         .then(res => {
           resolve(res);
         });
+    });
+  },
+  getOrderProducts: orderId => {
+    return new Promise(async (resolve, reject) => {
+      let orderProducts = await db
+        .get()
+        .collection(collections.ORDER_COLLECTION)
+        .aggregate([
+          {
+            $match: { _id: new ObjectId(orderId) },
+          },
+          {
+            $unwind: "$products",
+          },
+          {
+            $project: {
+              // #item means 'productId'
+              item: "$products.item",
+              quantity: "$products.quantity",
+            },
+          },
+          {
+            $lookup: {
+              from: collections.PRODUCT_COLLECTION,
+              localField: "item",
+              foreignField: "_id",
+              as: "product",
+            },
+          },
+          {
+            $project: {
+              item: 1,
+              quantity: 1,
+              product: { $arrayElemAt: ["$product", 0] },
+            },
+          },
+        ])
+        .toArray();
+      // console.log(orderProducts);
+      resolve(orderProducts);
     });
   },
 };

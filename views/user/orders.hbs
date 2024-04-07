@@ -1,14 +1,35 @@
 <section>
   <div class="container pt-4">
     <p class="fs-2 fw-bold">Order list ({{orders.length}})</p>
-    <ul class="list-group list-group-flush">
-      {{#each orders}}
-        <li class="list-group-item">
-          <p class="fs-5">{{this.date}}</p>
-          <p class="">{{this.paymentMethod}}</p>
-          <p class="fs-5 fw-bold">&#8377; {{this.totalAmount}}</p>
-        </li>
-      {{/each}}
-    </ul>
+    <table class="table mt-4">
+      <thead>
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Address</th>
+          <th scope="col">Pincode</th>
+          <th scope="col">Mobile</th>
+          <th scope="col">Amount</th>
+          <th scope="col">Payment</th>
+          <th scope="col">Status</th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each orders}}
+          <tr>
+            <td>{{this.date}}</td>
+            <td>{{this.deliveryDetails.address}}</td>
+            <td>{{this.deliveryDetails.pincode}}</td>
+            <td>{{this.deliveryDetails.mobile}}</td>
+            <td>&#8377;{{this.totalAmount}}</td>
+            <td>{{this.paymentMethod}}</td>
+            <td>{{this.status}}</td>
+            <td>
+              <a href="/view-order-products/{{this._id}}" class="btn btn-primary">View Products</a>
+            </td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
   </div>
 </section>
