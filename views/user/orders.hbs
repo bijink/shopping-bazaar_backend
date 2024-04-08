@@ -12,6 +12,7 @@
           <th scope="col">Payment</th>
           <th scope="col">Status</th>
           <th scope="col"></th>
+          <th scope="col"></th>
         </tr>
       </thead>
       <tbody>
@@ -24,8 +25,18 @@
             <td>&#8377;{{this.totalAmount}}</td>
             <td>{{this.paymentMethod}}</td>
             <td>{{this.status}}</td>
+            {{#if (eq this.status "pending")}}
+              <td>
+                <button
+                  class="btn btn-warning"
+                  onclick="payPendingOrders('{{this._id}}','{{this.totalAmount}}','{{this.deliveryDetails.mobile}}')"
+                >Pay</button>
+              </td>
+            {{else}}
+              <td></td>
+            {{/if}}
             <td>
-              <a href="/view-order-products/{{this._id}}" class="btn btn-primary">View Products</a>
+              <a href="/view-order-products/{{this._id}}" class="btn btn-success">View Products</a>
             </td>
           </tr>
         {{/each}}

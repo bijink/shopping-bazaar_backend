@@ -107,13 +107,23 @@ router.get("/place-order", verifyLogin, async (req, res) => {
   res.render("user/place-order", { user, totalAmount });
 });
 router.post("/place-order", async (req, res) => {
-  let userId = req.session.user._id;
-  let products = await userHelpers.getCartProductList(userId);
-  let totalAmount = await userHelpers.getCartTotalAmount(userId);
-  userHelpers.placeOrder(userId, req.body, products, totalAmount).then(response => {
-    // console.log(response);
-    res.json({ status: true, orderStatus: response.orderStatus });
-  });
+  let user = req.session.user;
+  let products = await userHelpers.getCartProductList(user._id);
+  let totalAmount = await userHelpers.getCartTotalAmount(user._id);
+  if ((user, products, totalAmount)) {
+    userHelpers.placeOrder(user._id, req.body, products, totalAmount).then(response => {
+      if (req.body.paymentMethod == "cod") {
+        res.json({ status: "cod-success" });
+      } else {
+        userHelpers.generateRazorpay(response.orderId, response.amount).then(order => {
+          let userObj = { name: user.name, email: user.email, contact: req.body.mobile };
+          res.json({ status: "online-pending", user: userObj, order });
+        });
+      }
+    });
+  } else {
+    res.json({ status: "redirect" });
+  }
 });
 router.get("/order-success", (req, res) => {
   res.render("user/order-success");
@@ -128,6 +138,22 @@ router.get("/view-order-products/:orderId", verifyLogin, async (req, res) => {
   let user = req.session.user;
   let orderProducts = await userHelpers.getOrderProducts(req.params.orderId);
   res.render("user/view-order-products", { user, orderProducts });
+});
+router.post("/verify-payment", async (req, res) => {
+  // console.log("VERIFY:: ", req.body["order[receipt]"]);
+  if (req.body) {
+    await userHelpers.updateOrderStatus(req.body["order[receipt]"]);
+  }
+  res.json({ status: true });
+});
+router.post("/pay-pending-orders", (req, res) => {
+  let user = req.session.user;
+  let { orderId, amount, mobile } = req.body;
+  // console.log({ orderId, amount, mobile });
+  userHelpers.generateRazorpay(orderId, Number(amount)).then(order => {
+    let userObj = { name: user.name, email: user.email, contact: mobile };
+    res.json({ status: "online-pending", user: userObj, order });
+  });
 });
 
 module.exports = router;

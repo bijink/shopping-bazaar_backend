@@ -2,6 +2,12 @@ var db = require("../config/connection");
 var collections = require("../config/collections");
 var bcrypt = require("bcrypt");
 const { ObjectId } = require("mongodb");
+const Razorpay = require("razorpay");
+
+var instance = new Razorpay({
+  key_id: "rzp_test_Yn82FeG4kWvrqt",
+  key_secret: "Z13UBT39Tzl6csIbmEyaKUs2",
+});
 
 module.exports = {
   doSignup: userData => {
@@ -247,7 +253,7 @@ module.exports = {
         .get()
         .collection(collections.CART_COLLECTION)
         .findOne({ user: new ObjectId(userId) });
-      resolve(cart.products);
+      resolve(cart?.products);
     });
   },
   placeOrder: (userId, orderData, products, totalAmount) => {
@@ -270,13 +276,11 @@ module.exports = {
       db.get()
         .collection(collections.ORDER_COLLECTION)
         .insertOne(orderObj)
-        .then(() => {
+        .then(response => {
           db.get()
             .collection(collections.CART_COLLECTION)
-            .deleteOne({ user: new ObjectId(userId) })
-            .then(() => {
-              resolve({ orderStatus: orderObj.status });
-            });
+            .deleteOne({ user: new ObjectId(userId) });
+          resolve({ orderId: response.insertedId, amount: totalAmount });
         });
     });
   },
@@ -330,6 +334,41 @@ module.exports = {
         .toArray();
       // console.log(orderProducts);
       resolve(orderProducts);
+    });
+  },
+  generateRazorpay: (orderId, amount) => {
+    return new Promise((resolve, reject) => {
+      // console.log(orderId.toString(), amount);
+      instance.orders.create(
+        {
+          amount: amount * 100,
+          currency: "INR",
+          receipt: orderId.toString(),
+          // notes: {
+          //   key1: "value3",
+          //   key2: "value2",
+          // },
+        },
+        (err, order) => {
+          if (!err) {
+            // console.log("generateRazorpay_RES", order);
+            resolve(order);
+          } else {
+            // console.log("generateRazorpay_ERR", err);
+            reject();
+          }
+        }
+      );
+    });
+  },
+  updateOrderStatus: orderId => {
+    return new Promise((resolve, reject) => {
+      db.get()
+        .collection(collections.ORDER_COLLECTION)
+        .updateOne({ _id: new ObjectId(orderId) }, { $set: { status: "placed" } })
+        .then(() => {
+          resolve();
+        });
     });
   },
 };
