@@ -361,7 +361,27 @@ module.exports = {
       );
     });
   },
-  updateOrderStatus: orderId => {
+  verifyPayment: orderDetails => {
+    return new Promise((resolve, reject) => {
+      const { createHmac } = require("node:crypto");
+      const secret = "Z13UBT39Tzl6csIbmEyaKUs2";
+      const hash = createHmac("sha256", secret)
+        .update(
+          orderDetails["payment[razorpay_order_id]"] +
+            "|" +
+            orderDetails["payment[razorpay_payment_id]"]
+        )
+        .digest("hex");
+      // console.log(hash);
+      // generated_signature = hmac_sha256(order_id + "|" + razorpay_payment_id, secret);
+      if (hash == orderDetails["payment[razorpay_signature]"]) {
+        resolve();
+      } else {
+        reject();
+      }
+    });
+  },
+  updatePaymentStatus: orderId => {
     return new Promise((resolve, reject) => {
       db.get()
         .collection(collections.ORDER_COLLECTION)

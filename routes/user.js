@@ -140,11 +140,19 @@ router.get("/view-order-products/:orderId", verifyLogin, async (req, res) => {
   res.render("user/view-order-products", { user, orderProducts });
 });
 router.post("/verify-payment", async (req, res) => {
-  // console.log("VERIFY:: ", req.body["order[receipt]"]);
+  // console.log("VERIFY:: ", req.body);
   if (req.body) {
-    await userHelpers.updateOrderStatus(req.body["order[receipt]"]);
+    userHelpers
+      .verifyPayment(req.body)
+      .then(() => {
+        userHelpers.updatePaymentStatus(req.body["order[receipt]"]).then(() => {
+          res.json({ status: true });
+        });
+      })
+      .catch(() => {
+        res.json({ status: false, errMsg: "Payment failed" });
+      });
   }
-  res.json({ status: true });
 });
 router.post("/pay-pending-orders", (req, res) => {
   let user = req.session.user;

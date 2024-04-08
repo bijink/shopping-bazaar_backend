@@ -59,6 +59,9 @@ function verifyPayment(payment, order) {
     success: ({ status }) => {
       if (status) {
         location.href = "/order-success";
+      } else {
+        alert("Payment failed");
+        location.href = "/orders";
       }
     },
   });
