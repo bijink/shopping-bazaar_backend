@@ -288,9 +288,9 @@ module.exports = {
     return new Promise(async (resolve, reject) => {
       db.get()
         .collection(collections.ORDER_COLLECTION)
-        .find()
+        .find({ userId: new ObjectId(userId) })
         .sort({ date: -1 })
-        .toArray({ userId: new ObjectId(userId) })
+        .toArray()
         .then(res => {
           resolve(res);
         });
