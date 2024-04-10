@@ -5,7 +5,7 @@ const productHelpers = require("../helpers/product-helpers");
 const adminHelpers = require("../helpers/admin-helpers");
 
 const verifyLogin = (req, res, next) => {
-  if (req.session.admin) {
+  if (req.session.loggedIn === "admin") {
     next();
   } else {
     res.redirect("/admin/login");
@@ -14,7 +14,7 @@ const verifyLogin = (req, res, next) => {
 // #here root url is "/admin/"
 // #here "/" represent "/admin/" in browser
 router.get("/", verifyLogin, function (req, res, next) {
-  if (req.session.admin) {
+  if (req.session.loggedIn === "admin") {
     productHelpers.getAllProducts().then(products => {
       // console.log("PRODUCTS:: ", products);
       res.render("admin/view-products", { products, admin: true });
@@ -24,7 +24,7 @@ router.get("/", verifyLogin, function (req, res, next) {
   }
 });
 router.get("/login", (req, res) => {
-  if (req.session.admin) {
+  if (req.session.loggedIn === "admin") {
     res.redirect("/admin");
   } else {
     res.render("admin/login", { loginErr: req.session.adminLoginErr });
@@ -33,10 +33,10 @@ router.get("/login", (req, res) => {
 });
 router.post("/login", (req, res) => {
   adminHelpers.doLogin(req.body).then(response => {
-    console.log("RESULT:: ", response);
+    // console.log("RESULT:: ", response);
     if (response.status) {
       req.session.admin = response.admin;
-      req.session.admin.loggedIn = true;
+      req.session.loggedIn = "admin";
       res.redirect("/admin");
     } else {
       req.session.adminLoginErr = "Invalid email or password";
@@ -46,6 +46,7 @@ router.post("/login", (req, res) => {
 });
 router.get("/logout", (req, res) => {
   req.session.admin = null;
+  req.session.loggedIn = null;
   res.redirect("/");
 });
 router.get("/add-product", verifyLogin, (req, res, next) => {

@@ -136,3 +136,7 @@ function payPendingOrders(orderId, amount, userMobileNo) {
     },
   });
 }
+
+$(document).ready(function () {
+  $("#admin-view-product-table").DataTable();
+});

@@ -13,7 +13,7 @@
             <div class="card-body">
               <h5 class="card-title">{{this.name}}</h5>
               <p class="card-text mb-0">{{this.description}}</p>
-              <p class="card-text fw-bold">Rs. {{this.price}}</p>
+              <p class="card-text fw-bold">&#8377;{{this.price}}</p>
               {{#if ../user}}
                 <button class="btn btn-primary" onclick="addToCart('{{this._id}}')">Add to cart</button>
               {{/if}}

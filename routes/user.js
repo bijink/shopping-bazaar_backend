@@ -4,7 +4,7 @@ const userHelpers = require("../helpers/user-helpers");
 var router = express.Router();
 
 const verifyLogin = (req, res, next) => {
-  if (req.session.user) {
+  if (req.session.loggedIn === "user") {
     next();
   } else {
     res.redirect("/login");
@@ -24,7 +24,7 @@ router.get("/", async function (req, res, next) {
   });
 });
 router.get("/login", (req, res) => {
-  if (req.session.user) {
+  if (req.session.loggedIn === "user") {
     res.redirect("/");
   } else {
     res.render("user/login", { loginErr: req.session.userLoginErr });
@@ -39,7 +39,7 @@ router.post("/signup", (req, res) => {
     console.log("User signed up");
     // console.log("USER_SIGNUP_RES:: ", response);
     req.session.user = response.user;
-    req.session.user.loggedIn = true;
+    req.session.loggedIn = "user";
     res.redirect("/");
   });
 });
@@ -48,7 +48,7 @@ router.post("/login", (req, res) => {
     // console.log("RESULT:: ", response);
     if (response.status) {
       req.session.user = response.user;
-      req.session.user.loggedIn = true;
+      req.session.loggedIn = "user";
       res.redirect("/");
     } else {
       req.session.userLoginErr = "Invalid email or password";
@@ -58,6 +58,7 @@ router.post("/login", (req, res) => {
 });
 router.get("/logout", (req, res) => {
   req.session.user = null;
+  req.session.loggedIn = null;
   res.redirect("/");
 });
 router.get("/cart", verifyLogin, async (req, res) => {
