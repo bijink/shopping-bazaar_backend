@@ -14,10 +14,7 @@ const verifyLogin = (req, res, next) => {
 /* GET home page. */
 router.get("/", async function (req, res, next) {
   let user = req.session.user;
-  let cartCount = null;
-  if (user) {
-    cartCount = await userHelpers.getCartCount(user._id);
-  }
+  let cartCount = user ? await userHelpers.getCartCount(user._id) : null;
   productHelpers.getAllProducts().then(products => {
     // console.log("PRODUCTS:: ", products);
     res.render("user/view-products", { products, admin: false, user, cartCount });
@@ -64,10 +61,11 @@ router.get("/logout", (req, res) => {
 router.get("/cart", verifyLogin, async (req, res) => {
   let user = req.session.user;
   let userId = req.session.user._id;
+  let cartCount = user ? await userHelpers.getCartCount(user._id) : null;
   let cartProducts = await userHelpers.getCartProducts(userId);
   let cartTotalAmount = (await userHelpers.getCartTotalAmount(userId)) ?? 0;
   // console.log(cartProducts);
-  res.render("user/cart", { cartProducts, admin: false, user, cartTotalAmount });
+  res.render("user/cart", { cartProducts, cartCount, admin: false, user, cartTotalAmount });
 });
 router.get("/add-to-cart/:prodId", verifyLogin, (req, res) => {
   let prodId = req.params.prodId;
@@ -104,8 +102,9 @@ router.post("/change-cart-item-quantity", (req, res) => {
 });
 router.get("/place-order", verifyLogin, async (req, res) => {
   let user = req.session.user;
+  let cartCount = user ? await userHelpers.getCartCount(user._id) : null;
   let totalAmount = await userHelpers.getCartTotalAmount(user._id);
-  res.render("user/place-order", { user, totalAmount });
+  res.render("user/place-order", { user, totalAmount, cartCount });
 });
 router.post("/place-order", async (req, res) => {
   let user = req.session.user;
@@ -126,19 +125,24 @@ router.post("/place-order", async (req, res) => {
     res.json({ status: "redirect" });
   }
 });
-router.get("/order-success", (req, res) => {
-  res.render("user/order-success");
-});
-router.get("/orders", verifyLogin, (req, res) => {
+router.get("/order-success", async (req, res) => {
   let user = req.session.user;
+  let cartCount = user ? await userHelpers.getCartCount(user._id) : null;
+  res.render("user/order-success", { cartCount });
+});
+router.get("/orders", verifyLogin, async (req, res) => {
+  let user = req.session.user;
+  let cartCount = user ? await userHelpers.getCartCount(user._id) : null;
   userHelpers.getOrders(user._id).then(response => {
-    res.render("user/orders", { user, orders: response });
+    res.render("user/orders", { user, orders: response, cartCount });
   });
 });
 router.get("/view-order-products/:orderId", verifyLogin, async (req, res) => {
   let user = req.session.user;
+  let cartCount = user ? await userHelpers.getCartCount(user._id) : null;
+
   let orderProducts = await userHelpers.getOrderProducts(req.params.orderId);
-  res.render("user/view-order-products", { user, orderProducts });
+  res.render("user/view-order-products", { user, orderProducts, cartCount });
 });
 router.post("/verify-payment", async (req, res) => {
   // console.log("VERIFY:: ", req.body);

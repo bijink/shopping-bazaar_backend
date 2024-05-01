@@ -34,6 +34,17 @@ function changeCartItemQuantity(cartId, prodId, count) {
           $(`#cart-item-quantity_${prodId}`).html(quantityElement);
         }
         $(`#cart-total-amount`).html(res.cartTotalAmount);
+        if (res.cartTotalAmount === 0) {
+          $("#cart-actions").replaceWith(`
+            <div id="empty-cart-actions" class="d-flex justify-content-center mt-5">
+              <div class="d-flex flex-column text-center">
+                <p class="fs-4">Cart is Empty</p>
+                <a href="/" id="place-order-btn" class="btn btn-primary float-end">Go to
+                  Products</a>
+              </div>
+            </div>
+          `);
+        }
       }
     },
   });
@@ -47,6 +58,17 @@ function removeCartItem(cartId, prodId) {
         alert("Product removed from Cart");
         $(`#cart-list-item_${prodId}`).css("display", "none");
         $(`#cart-total-amount`).html(res.cartTotalAmount);
+        if (res.cartTotalAmount === 0) {
+          $("#cart-actions").replaceWith(`
+            <div id="empty-cart-actions" class="d-flex justify-content-center mt-5">
+              <div class="d-flex flex-column text-center">
+                <p class="fs-4">Cart is Empty</p>
+                <a href="/" id="place-order-btn" class="btn btn-primary float-end">Go to
+                  Products</a>
+              </div>
+            </div>
+          `);
+        }
       }
     },
   });

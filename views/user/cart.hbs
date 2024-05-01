@@ -44,12 +44,21 @@
         {{/each}}
       </tbody>
     </table>
-    <div class="float-end mt-2" style="margin-right: 100px;">
-      <p class="fs-4">Total: &#8377;<span
-          class="fw-bold"
-          id="cart-total-amount"
-        >{{cartTotalAmount}}</span></p>
-      <a href="/place-order" id="place-order-btn" class="btn btn-success float-end">Place order</a>
-    </div>
+    {{#if cartCount}}
+      <div id="cart-actions" class="float-end mt-2" style="margin-right: 100px;">
+        <p class="fs-4">Total: &#8377;<span
+            class="fw-bold"
+            id="cart-total-amount"
+          >{{cartTotalAmount}}</span></p>
+        <a href="/place-order" id="place-order-btn" class="btn btn-success float-end">Place order</a>
+      </div>
+    {{else}}
+      <div id="empty-cart-actions" class="d-flex justify-content-center mt-5">
+        <div class="d-flex flex-column text-center">
+          <p class="fs-4">Cart is Empty</p>
+          <a href="/" id="place-order-btn" class="btn btn-primary float-end">Go to Products</a>
+        </div>
+      </div>
+    {{/if}}
   </div>
 </section>
