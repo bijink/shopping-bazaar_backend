@@ -1,17 +1,17 @@
 var db = require("../config/connection");
-var collections = require("../config/collections");
-var bcrypt = require("bcrypt");
-const { ObjectId } = require("mongodb");
-const Razorpay = require("razorpay");
+import collections from "../mongodb/collections";
+import bcrypt from "bcrypt";
+import { ObjectId } from "mongodb";
+import Razorpay from "razorpay";
 
 var instance = new Razorpay({
   key_id: "rzp_test_Yn82FeG4kWvrqt",
   key_secret: "Z13UBT39Tzl6csIbmEyaKUs2",
 });
 
-module.exports = {
+const userHelpers = {
   doSignup: userData => {
-    return new Promise(async (resolve, reject) => {
+    return new Promise<any>(async (resolve, reject) => {
       userData.password = await bcrypt.hash(userData.password, 10);
       let insertRes = await db.get().collection(collections.USER_COLLECTION).insertOne(userData);
       let user = await db
@@ -392,3 +392,12 @@ module.exports = {
     });
   },
 };
+
+export default userHelpers;
+
+const foo = () => {
+  let a: string;
+  a = "foos";
+  return a;
+};
+export { foo };

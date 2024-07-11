@@ -1,9 +1,10 @@
-var express = require("express");
-const productHelpers = require("../helpers/product-helpers");
-const userHelpers = require("../helpers/user-helpers");
+import express, { NextFunction, Request, Response } from "express";
+import userHelpers, { foo } from "../helpers/user.helpers";
+import productHelpers from "../helpers/product.helpers";
+
 var router = express.Router();
 
-const verifyLogin = (req, res, next) => {
+const verifyLogin = (req: Request, res: Response, next: NextFunction) => {
   if (req.session.loggedIn === "user") {
     next();
   } else {
@@ -60,7 +61,7 @@ router.get("/logout", (req, res) => {
 });
 router.get("/cart", verifyLogin, async (req, res) => {
   let user = req.session.user;
-  let userId = req.session.user._id;
+  let userId = req.session.user?._id;
   let cartCount = user ? await userHelpers.getCartCount(user._id) : null;
   let cartProducts = await userHelpers.getCartProducts(userId);
   let cartTotalAmount = (await userHelpers.getCartTotalAmount(userId)) ?? 0;
@@ -69,14 +70,14 @@ router.get("/cart", verifyLogin, async (req, res) => {
 });
 router.get("/add-to-cart/:prodId", verifyLogin, (req, res) => {
   let prodId = req.params.prodId;
-  let userId = req.session.user._id;
+  let userId = req.session.user?._id;
   // console.log("api called");
   userHelpers.addToCart(prodId, userId).then(response => {
     res.json({ status: response.status });
   });
 });
 router.get("/remove-from-cart", (req, res) => {
-  let userId = req.session.user._id;
+  let userId = req.session.user?._id;
   let { cartId, prodId } = req.query;
   userHelpers.removeFromCart(userId, cartId, prodId).then(async response => {
     let cartTotalAmount = (await userHelpers.getCartTotalAmount(userId)) ?? 0;
@@ -84,7 +85,7 @@ router.get("/remove-from-cart", (req, res) => {
   });
 });
 router.post("/change-cart-item-quantity", (req, res) => {
-  let userId = req.session.user._id;
+  let userId = req.session.user?._id;
   let { cartId, prodId, quantity, count } = req.body;
   quantity = Number(quantity);
   count = Number(count);
@@ -101,16 +102,16 @@ router.post("/change-cart-item-quantity", (req, res) => {
   }
 });
 router.get("/place-order", verifyLogin, async (req, res) => {
-  let user = req.session.user;
+  let user = req.session.user!;
   let cartCount = user ? await userHelpers.getCartCount(user._id) : null;
   let totalAmount = await userHelpers.getCartTotalAmount(user._id);
   res.render("user/place-order", { user, totalAmount, cartCount });
 });
 router.post("/place-order", async (req, res) => {
-  let user = req.session.user;
+  let user = req.session.user!;
   let products = await userHelpers.getCartProductList(user._id);
   let totalAmount = await userHelpers.getCartTotalAmount(user._id);
-  if ((user, products, totalAmount)) {
+  if (totalAmount) {
     userHelpers.placeOrder(user._id, req.body, products, totalAmount).then(response => {
       if (req.body.paymentMethod == "cod") {
         res.json({ status: "cod-success" });
@@ -131,7 +132,7 @@ router.get("/order-success", async (req, res) => {
   res.render("user/order-success", { cartCount });
 });
 router.get("/orders", verifyLogin, async (req, res) => {
-  let user = req.session.user;
+  let user = req.session.user!;
   let cartCount = user ? await userHelpers.getCartCount(user._id) : null;
   userHelpers.getOrders(user._id).then(response => {
     res.render("user/orders", { user, orders: response, cartCount });
@@ -160,7 +161,7 @@ router.post("/verify-payment", async (req, res) => {
   }
 });
 router.post("/pay-pending-orders", (req, res) => {
-  let user = req.session.user;
+  let user = req.session.user!;
   let { orderId, amount, mobile } = req.body;
   // console.log({ orderId, amount, mobile });
   userHelpers.generateRazorpay(orderId, Number(amount)).then(order => {
@@ -169,4 +170,6 @@ router.post("/pay-pending-orders", (req, res) => {
   });
 });
 
-module.exports = router;
+export default router;
+
+const aa = foo();

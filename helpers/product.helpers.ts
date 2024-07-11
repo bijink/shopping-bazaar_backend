@@ -1,8 +1,8 @@
 const db = require("../config/connection");
-var collections = require("../config/collections");
-const { ObjectId } = require("mongodb");
+import collections from "../mongodb/collections";
+import { ObjectId } from "mongodb";
 
-module.exports = {
+const productHelpers = {
   addProduct: (product, callback) => {
     db.get()
       .collection(collections.PRODUCT_COLLECTION)
@@ -58,3 +58,5 @@ module.exports = {
     });
   },
 };
+
+export default productHelpers;
