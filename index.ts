@@ -1,9 +1,10 @@
-import express, { Request, Response, Application } from "express";
+import express, { Application } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./mongodb/connect";
 import cookieParser from "cookie-parser";
 import session from "express-session";
+import routes from "./routes";
 
 dotenv.config();
 
@@ -20,12 +21,7 @@ app.use(cookieParser());
 app.use(
   session({ secret: "key", resave: true, saveUninitialized: true, cookie: { maxAge: 600000 } })
 );
-
-app.get("/", (req: Request, res: Response) => {
-  res.send(`Welcome to "Shopping Bazaar" e-commerce web application api server`);
-});
-// app.use("/api/v1/users", userRouter);
-// app.use("/users", userRouter);
+app.use(routes);
 
 (async () => {
   if (!process.env.MONGODB_URL) throw new Error("MongoDB url is missing");

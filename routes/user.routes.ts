@@ -1,8 +1,8 @@
-import express, { NextFunction, Request, Response } from "express";
-import userHelpers, { foo } from "../helpers/user.helpers";
+import { Router, NextFunction, Request, Response } from "express";
+import userHelpers from "../helpers/user.helpers";
 import productHelpers from "../helpers/product.helpers";
 
-var router = express.Router();
+const router = Router();
 
 const verifyLogin = (req: Request, res: Response, next: NextFunction) => {
   if (req.session.loggedIn === "user") {
@@ -33,6 +33,14 @@ router.get("/signup", (req, res) => {
   res.render("user/signup");
 });
 router.post("/signup", (req, res) => {
+  // userHelpers.doSignup("dummyParam").then(response => {
+  //   console.log("User signed up");
+  //   // console.log("USER_SIGNUP_RES:: ", response);
+  //   // req.session.user = response.user;
+  //   // req.session.loggedIn = "user";
+  //   // res.redirect("/");
+  //   res.send("send");
+  // });
   userHelpers.doSignup(req.body).then(response => {
     console.log("User signed up");
     // console.log("USER_SIGNUP_RES:: ", response);
@@ -171,5 +179,3 @@ router.post("/pay-pending-orders", (req, res) => {
 });
 
 export default router;
-
-const aa = foo();

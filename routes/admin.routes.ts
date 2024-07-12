@@ -126,4 +126,4 @@ router.get("/all-users", verifyLogin, async (req, res) => {
   res.render("admin/view-users", { admin, users: usersList });
 });
 
-module.exports = router;
+export default router;
