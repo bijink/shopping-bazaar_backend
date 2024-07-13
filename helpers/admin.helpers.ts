@@ -1,27 +1,27 @@
-const db = require("../config/connection");
-import collections from "../mongodb/collections";
-import { ObjectId } from "mongodb";
-import bcrypt from "bcrypt";
+const db = require('../config/connection');
+import collections from '../mongodb/collections';
+import { ObjectId } from 'mongodb';
+import bcrypt from 'bcrypt';
 
 module.exports = {
-  doLogin: adminData => {
+  doLogin: (adminData) => {
     return new Promise(async (resolve, reject) => {
-      let admin = await db
+      const admin = await db
         .get()
         .collection(collections.ADMIN_COLLECTION)
         .findOne({ email: adminData.email });
       if (admin) {
-        bcrypt.compare(adminData.password, admin.password).then(status => {
+        bcrypt.compare(adminData.password, admin.password).then((status) => {
           if (status) {
-            console.log("Login success");
+            console.log('Login success');
             resolve({ admin, status: true });
           } else {
-            console.log("Login failed");
+            console.log('Login failed');
             resolve({ admin: null, status: false });
           }
         });
       } else {
-        console.log("Login failed");
+        console.log('Login failed');
         resolve({ admin: null, status: false });
       }
     });
@@ -31,10 +31,10 @@ module.exports = {
       db.get()
         .collection(collections.ORDER_COLLECTION)
         // .find({ status: { $ne: "pending" } })
-        .find({ $or: [{ status: "placed" }, { status: "dispatched" }] })
+        .find({ $or: [{ status: 'placed' }, { status: 'dispatched' }] })
         .sort({ date: -1 })
         .toArray()
-        .then(res => {
+        .then((res) => {
           resolve(res);
         });
     });
@@ -49,9 +49,9 @@ module.exports = {
         });
     });
   },
-  getOrderProducts: orderId => {
+  getOrderProducts: (orderId) => {
     return new Promise(async (resolve, reject) => {
-      let orderProducts = await db
+      const orderProducts = await db
         .get()
         .collection(collections.ORDER_COLLECTION)
         .aggregate([
@@ -59,28 +59,28 @@ module.exports = {
             $match: { _id: new ObjectId(orderId) },
           },
           {
-            $unwind: "$products",
+            $unwind: '$products',
           },
           {
             $project: {
               // #item means 'productId'
-              item: "$products.item",
-              quantity: "$products.quantity",
+              item: '$products.item',
+              quantity: '$products.quantity',
             },
           },
           {
             $lookup: {
               from: collections.PRODUCT_COLLECTION,
-              localField: "item",
-              foreignField: "_id",
-              as: "product",
+              localField: 'item',
+              foreignField: '_id',
+              as: 'product',
             },
           },
           {
             $project: {
               item: 1,
               quantity: 1,
-              product: { $arrayElemAt: ["$product", 0] },
+              product: { $arrayElemAt: ['$product', 0] },
             },
           },
         ])
@@ -91,7 +91,7 @@ module.exports = {
   },
   getUsersList: () => {
     return new Promise(async (resolve, reject) => {
-      let usersList = await db.get().collection(collections.USER_COLLECTION).find().toArray();
+      const usersList = await db.get().collection(collections.USER_COLLECTION).find().toArray();
       resolve(usersList);
     });
   },

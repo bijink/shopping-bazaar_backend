@@ -1,36 +1,36 @@
-const db = require("../config/connection");
-import collections from "../mongodb/collections";
-import { ObjectId } from "mongodb";
+const db = require('../config/connection');
+import collections from '../mongodb/collections';
+import { ObjectId } from 'mongodb';
 
 const productHelpers = {
   addProduct: (product, callback) => {
     db.get()
       .collection(collections.PRODUCT_COLLECTION)
       .insertOne(product)
-      .then(data => {
-        console.log("ADDED_PRODUCT_DATA:: ", data);
+      .then((data) => {
+        console.log('ADDED_PRODUCT_DATA:: ', data);
         callback(data.insertedId.toString());
       });
   },
   getAllProducts: () => {
     return new Promise(async (resolve, reject) => {
-      let products = await db.get().collection(collections.PRODUCT_COLLECTION).find().toArray();
+      const products = await db.get().collection(collections.PRODUCT_COLLECTION).find().toArray();
       resolve(products);
     });
   },
-  deleteProduct: prodId => {
+  deleteProduct: (prodId) => {
     return new Promise((resolve, reject) => {
       db.get()
         .collection(collections.PRODUCT_COLLECTION)
         .deleteOne({ _id: new ObjectId(prodId) })
-        .then(res => {
+        .then((res) => {
           resolve(res);
         });
     });
   },
-  getProductDetails: prodId => {
+  getProductDetails: (prodId) => {
     return new Promise(async (resolve, reject) => {
-      let product = await db
+      const product = await db
         .get()
         .collection(collections.PRODUCT_COLLECTION)
         .findOne({ _id: new ObjectId(prodId) });
@@ -50,9 +50,9 @@ const productHelpers = {
               description: prodDetails.description,
               price: prodDetails.price,
             },
-          }
+          },
         )
-        .then(response => {
+        .then((response) => {
           resolve();
         });
     });

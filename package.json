@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "private": true,
+  "prettier": "@bijink/prettier-config",
   "scripts": {
     "dev": "ts-node-dev index.ts",
     "build": "rimraf dist && tsc",
@@ -28,7 +29,7 @@
     "razorpay": "^2.9.2"
   },
   "devDependencies": {
-    "@bijink/prettier-config": "^1.0.1",
+    "@bijink/prettier-config": "^1.1.0",
     "@eslint/js": "^9.6.0",
     "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.7",
@@ -45,6 +46,5 @@
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.5.3",
     "typescript-eslint": "^7.16.0"
-  },
-  "prettier": "@bijink/prettier-config"
+  }
 }
