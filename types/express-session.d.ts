@@ -1,9 +1,10 @@
 import 'express-session';
+import mongoose from 'mongoose';
 
 declare module 'express-session' {
   interface SessionData {
     user?: {
-      _id: string;
+      _id: mongoose.Types.ObjectId;
       name: string;
       email: string;
     } | null;

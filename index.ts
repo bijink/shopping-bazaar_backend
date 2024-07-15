@@ -1,7 +1,8 @@
+/* eslint no-console: off */
 import express, { Application } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import connectDB from './mongodb/connect';
+import connectDB from './mongoose/connect';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import routes from './routes';
@@ -28,7 +29,7 @@ app.use(routes);
   try {
     connectDB(process.env.MONGODB_URL);
 
-    app.listen(port, () => console.log(`Server started on port http://localhost:${port}`));
+    app.listen(port, () => console.log(`Server started on http://localhost:${port}`));
   } catch (err) {
     console.log(err);
   }

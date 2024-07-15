@@ -1,3 +1,4 @@
+/* eslint no-console: off */
 import mongoose from 'mongoose';
 
 const connectDB = (url: string) => {

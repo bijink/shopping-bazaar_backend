@@ -10,7 +10,10 @@ export default [
   { files: ['**/*.{js,mjs,cjs,ts}'] },
   { languageOptions: { globals: globals.browser } },
   {
-    rules: { '@typescript-eslint/no-unused-vars': 'warn' },
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'warn',
+      'no-console': 'warn',
+    },
   },
   {
     ignores: ['dist/', '__**'],
