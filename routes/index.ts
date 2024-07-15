@@ -8,7 +8,7 @@ router.get('/', (req, res) => {
   res.send('Welcome to "Shopping Bazaar" e-commerce web application api server');
 });
 
-// router.use('/user', UserRoutes);
+router.use('/user', UserRoutes);
 // router.use('/admin', AdminRoutes);
 
 export default router;
