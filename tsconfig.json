@@ -10,7 +10,6 @@
     "forceConsistentCasingInFileNames": true,
     "removeComments": true
   },
-  // "include": ["./**/*.ts", "./types/**/*.d.ts"]
   "include": ["./**/*.ts"],
   "files": ["types/express-session.d.ts"]
 }
