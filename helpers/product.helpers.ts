@@ -8,13 +8,6 @@ const productHelpers = {
     price: number;
     description: string;
   }) => {
-    // db.get()
-    //   .collection(collections.PRODUCT_COLLECTION)
-    //   .insertOne(product)
-    //   .then((data) => {
-    //     console.log('ADDED_PRODUCT_DATA:: ', data);
-    //     callback(data.insertedId.toString());
-    //   });
     try {
       const product = new Product(reqData);
       await product.save();
@@ -61,24 +54,6 @@ const productHelpers = {
       description?: string;
     },
   ) => {
-    // return new Promise(async (resolve, reject) => {
-    //   db.get()
-    //     .collection(collections.PRODUCT_COLLECTION)
-    //     .updateOne(
-    //       { _id: new ObjectId(prodId) },
-    //       {
-    //         $set: {
-    //           name: prodDetails.name,
-    //           category: prodDetails.category,
-    //           description: prodDetails.description,
-    //           price: prodDetails.price,
-    //         },
-    //       },
-    //     )
-    //     .then((response) => {
-    //       resolve();
-    //     });
-    // });
     try {
       await Product.updateOne({ _id: prodId }, detailsToUpdate);
       const updatedProduct = await Product.findById(prodId).exec();

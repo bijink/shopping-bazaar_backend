@@ -37,15 +37,6 @@ router.post('/signup', (req, res) => {
     .catch(() => {
       res.sendStatus(400);
     });
-  // !:
-  // userHelpers.doSignup(req.body).then(response => {
-  //   console.log("User signed up");
-  //   // console.log("USER_SIGNUP_RES:: ", response);
-  //   req.session.user = response.user;
-  //   req.session.loggedIn = "user";
-  //   res.redirect("/");
-  // });
-  // !:
 });
 router.post('/login', (req, res) => {
   userHelpers
@@ -61,60 +52,79 @@ router.post('/login', (req, res) => {
       res.status(400).send(err);
     });
 });
-// router.get('/add-to-cart/:prodId', verifyLogin, (req, res) => {
-//   const prodId = req.params.prodId;
-//   const userId = req.session.user?._id;
-//   // console.log("api called");
-//   userHelpers.addToCart(prodId, userId).then((response) => {
-//     res.json({ status: response.status });
-//   });
-// });
-// router.get('/cart', verifyLogin, async (req, res) => {
-//   const user = req.session.user;
-//   const userId = req.session.user?._id;
-//   const cartCount = user ? await userHelpers.getCartCount(user._id) : null;
-//   const cartProducts = await userHelpers.getCartProducts(userId);
-//   const cartTotalAmount = (await userHelpers.getCartTotalAmount(userId)) ?? 0;
-//   // console.log(cartProducts);
-//   res.render('user/cart', {
-//     cartProducts,
-//     cartCount,
-//     admin: false,
-//     user,
-//     cartTotalAmount,
-//   });
-// router.get('/remove-from-cart', (req, res) => {
-//   const userId = req.session.user?._id;
-//   const { cartId, prodId } = req.query;
-//   userHelpers.removeFromCart(userId, cartId, prodId).then(async () => {
-//     const cartTotalAmount = (await userHelpers.getCartTotalAmount(userId)) ?? 0;
-//     res.json({ status: true, cartTotalAmount });
-//   });
-// });
-// router.post('/change-cart-item-quantity', (req, res) => {
-//   const userId = req.session.user?._id;
-//   const { cartId, prodId } = req.body;
-//   let { quantity, count } = req.body;
-//   quantity = Number(quantity);
-//   count = Number(count);
-//   if (quantity == 1 && count == -1) {
-//     userHelpers.removeFromCart(userId, cartId, prodId).then(async () => {
-//       const cartTotalAmount = (await userHelpers.getCartTotalAmount(userId)) ?? 0;
-//       res.json({ status: true, itemRemoved: true, cartTotalAmount });
-//     });
-//   } else {
-//     userHelpers.changeCartItemQuantity(cartId, prodId, count).then(async () => {
-//       const cartTotalAmount = await userHelpers.getCartTotalAmount(userId);
-//       res.json({ status: true, itemRemoved: false, cartTotalAmount });
-//     });
-//   }
-// });
-// router.get('/place-order', verifyLogin, async (req, res) => {
-//   const user = req.session.user!;
-//   const cartCount = user ? await userHelpers.getCartCount(user._id) : null;
-//   const totalAmount = await userHelpers.getCartTotalAmount(user._id);
-//   res.render('user/place-order', { user, totalAmount, cartCount });
-// });
+router.post('/add-to-cart/:userId/:prodId', (req, res) => {
+  const userId = req.params.userId;
+  const prodId = req.params.prodId;
+  // console.log("api called");
+  // console.log(userId, prodId);
+  // console.log(typeof userId, prodId);
+  // res.sendStatus(200);
+  userHelpers
+    .addToCart(userId, prodId)
+    .then((response) => {
+      res.status(200).send(response);
+    })
+    .catch((error) => {
+      res.status(400).send(error);
+    });
+});
+router.delete('/remove-from-cart', (req, res) => {
+  const { userId, prodId } = req.query;
+  userHelpers
+    .removeFromCart(userId, prodId)
+    .then((response) => {
+      res.status(200).send(response);
+    })
+    .catch((error) => {
+      res.status(400).send(error);
+    });
+});
+router.patch('/change-cart-item-quantity', (req, res) => {
+  const { userId, prodId, count } = req.query;
+  const countNum = Number(count);
+  userHelpers
+    .changeCartItemQuantity(userId, prodId, countNum)
+    .then((response) => {
+      // const cartTotalAmount = await userHelpers.getCartTotalAmount(userId);
+      res.status(200).send(response);
+    })
+    .catch((error) => {
+      res.status(400).send(error);
+    });
+});
+router.get('/get-cart-products/:userId', (req, res) => {
+  const { userId } = req.params;
+  userHelpers
+    .getCartProducts(userId)
+    .then((response) => {
+      res.status(200).send(response);
+    })
+    .catch((error) => {
+      res.status(400).send(error);
+    });
+});
+router.get('/get-cart-count/:userId', (req, res) => {
+  const { userId } = req.params;
+  userHelpers
+    .getCartCount(userId)
+    .then((response) => {
+      res.status(200).send(response);
+    })
+    .catch((error) => {
+      res.status(400).send(error);
+    });
+});
+router.get('/get-cart-amount/:userId', (req, res) => {
+  const { userId } = req.params;
+  userHelpers
+    .getCartTotalAmount(userId)
+    .then((response) => {
+      res.status(200).send(response);
+    })
+    .catch((error) => {
+      res.status(400).send(error);
+    });
+});
 // router.post('/place-order', async (req, res) => {
 //   const user = req.session.user!;
 //   const products = await userHelpers.getCartProductList(user._id);
