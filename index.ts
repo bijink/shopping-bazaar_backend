@@ -1,10 +1,10 @@
 /* eslint no-console: off */
-import express, { Application } from 'express';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import connectDB from './mongoose/connect';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import express, { Application } from 'express';
 import session from 'express-session';
+import connectDB from './mongoose/connect';
 import routes from './routes';
 
 dotenv.config();

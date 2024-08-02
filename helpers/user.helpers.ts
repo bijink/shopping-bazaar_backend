@@ -1,8 +1,8 @@
 // import Razorpay from 'razorpay';
 import bcrypt from 'bcrypt';
-import { Cart, Product, User } from '../mongoose/models';
 import { Types } from 'mongoose';
 import { ParsedQs } from 'qs';
+import { Cart, Product, User } from '../mongoose/models';
 
 // const instance = new Razorpay({
 //   key_id: 'rzp_test_Yn82FeG4kWvrqt',
