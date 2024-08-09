@@ -1,6 +1,5 @@
-import Admin from './admin.model';
-import User from './user.model';
-import Product from './product.model';
 import Cart from './cart.model';
+import Product from './product.model';
+import User from './user.model';
 
-export { Admin, User, Product, Cart };
+export { Cart, Product, User };

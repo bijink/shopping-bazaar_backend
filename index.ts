@@ -3,7 +3,6 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Application } from 'express';
-import session from 'express-session';
 import logger from 'morgan';
 import connectDB from './mongoose/connect';
 import routes from './routes';
@@ -17,19 +16,18 @@ app.use(cors());
 app.use(logger('dev'));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser('hello'));
 // app.use(express.static(path.join(__dirname, "public")));
 // app.use(fileUpload());
-app.use(
-  session({ secret: 'key', resave: true, saveUninitialized: true, cookie: { maxAge: 600000 } }),
-);
-app.use(routes);
+// app.use(
+//   session({ secret: 'key', resave: true, saveUninitialized: true, cookie: { maxAge: 600000 } }),
+// );
+app.use('/api/v1', routes);
 
 (async () => {
   if (!process.env.MONGODB_URL) throw new Error('MongoDB url is missing');
   try {
     connectDB(process.env.MONGODB_URL);
-
     app.listen(port, () => console.log(`Server started on http://localhost:${port}`));
   } catch (err) {
     console.log(err);

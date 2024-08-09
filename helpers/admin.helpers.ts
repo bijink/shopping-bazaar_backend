@@ -1,28 +1,4 @@
-import bcrypt from 'bcrypt';
-import { Admin } from '../mongoose/models';
-// import { ObjectId } from 'mongodb';
-
 const adminHelpers = {
-  doLogin: async (reqData: { email: string; password: string }) => {
-    try {
-      const admin = await Admin.findOne({ email: reqData.email });
-      let adminAuthStatus = false;
-      if (admin) {
-        await bcrypt.compare(reqData.password, admin.password).then((status) => {
-          adminAuthStatus = status;
-        });
-      } else {
-        adminAuthStatus = false;
-      }
-      if (adminAuthStatus) {
-        return Promise.resolve({ admin });
-      } else {
-        return Promise.reject('Invalid email or password');
-      }
-    } catch (error) {
-      return Promise.reject();
-    }
-  },
   // getOrders: () => {
   //   return new Promise(async (resolve, reject) => {
   //     db.get()

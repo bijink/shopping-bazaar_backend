@@ -1,46 +1,14 @@
 // import Razorpay from 'razorpay';
-import bcrypt from 'bcrypt';
 import { Types } from 'mongoose';
 import { ParsedQs } from 'qs';
-import { Cart, Product, User } from '../mongoose/models';
+import { Cart, Product } from '../mongoose/models';
 
 // const instance = new Razorpay({
 //   key_id: 'rzp_test_Yn82FeG4kWvrqt',
 //   key_secret: 'Z13UBT39Tzl6csIbmEyaKUs2',
 // });
 
-const userHelpers = {
-  doSignup: async (reqBody: { name: string; email: string; password: string }) => {
-    try {
-      reqBody.password = await bcrypt.hash(reqBody.password, 10);
-      const user = new User(reqBody);
-      await user.save();
-      const insertedUser = await User.findById(user._id, 'name email').exec();
-      return Promise.resolve({ user: insertedUser });
-    } catch (error) {
-      return Promise.reject();
-    }
-  },
-  doLogin: async (reqBody: { email: string; password: string }) => {
-    try {
-      const user = await User.findOne({ email: reqBody.email });
-      let userAuthStatus = false;
-      if (user) {
-        await bcrypt.compare(reqBody.password, user.password).then((status) => {
-          userAuthStatus = status;
-        });
-      } else {
-        userAuthStatus = false;
-      }
-      if (userAuthStatus) {
-        return Promise.resolve({ user });
-      } else {
-        return Promise.reject('Invalid email or password');
-      }
-    } catch (error) {
-      return Promise.reject();
-    }
-  },
+const customerHelpers = {
   // #if no cart, add new cart doc | if cart doc exist & (item not exist, add item | item exist, increment cart quantity)
   addToCart: async (userId: string, prodId: string) => {
     const prodObj = {
@@ -355,4 +323,4 @@ const userHelpers = {
   // },
 };
 
-export default userHelpers;
+export default customerHelpers;

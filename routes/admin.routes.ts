@@ -1,23 +1,7 @@
 import { Router } from 'express';
-import { adminHelpers, productHelpers } from '../helpers';
-import { Admin } from '../mongoose/models';
-import bcrypt from 'bcrypt';
+import { productHelpers } from '../helpers';
 
 const router = Router();
-
-// !: for dev
-router.post('/add-super-admin', async (req, res) => {
-  try {
-    req.body.password = await bcrypt.hash(req.body.password, 10);
-    const admin = new Admin(req.body);
-    await admin.save();
-    const insertedAdmin = await Admin.findById(admin._id, 'name email').exec();
-    res.status(200).send(insertedAdmin);
-  } catch (error) {
-    res.sendStatus(400);
-  }
-});
-// !: for dev
 
 // const verifyLogin = (req, res, next) => {
 //   if (req.session.loggedIn === 'admin') {
@@ -26,20 +10,6 @@ router.post('/add-super-admin', async (req, res) => {
 //     res.redirect('/admin/login');
 //   }
 // };
-router.post('/login', (req, res) => {
-  adminHelpers
-    .doLogin(req.body)
-    .then((response) => {
-      // console.log('RESULT:: ', response);
-      // req.session.admin = response.admin;
-      // req.session.loggedIn = 'admin';
-      res.status(200).send(response);
-    })
-    .catch((err) => {
-      // console.log('Err', err);
-      res.status(400).send(err);
-    });
-});
 router.post('/product-add', (req, res) => {
   // console.log(req.body);
   // console.log(req.files.Image);

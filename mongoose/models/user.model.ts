@@ -1,6 +1,11 @@
 import { model, Schema } from 'mongoose';
 
 const userSchema = new Schema({
+  type: {
+    type: String,
+    enum: ['customer'], // Restricts the field to only this value
+    default: 'customer', // Sets the default value
+  },
   name: {
     type: String,
     required: true,
