@@ -64,7 +64,7 @@ router.get('/product-get', async (req, res) => {
   }
 });
 router.get('/product-get-all', async (req, res) => {
-  // console.log(req.user);
+  // console.log(res.locals.user);
   productHelpers
     .getAllProduct()
     .then((response) => {

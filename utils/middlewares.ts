@@ -13,7 +13,7 @@ export const authenticateJwtToken = (req: Request, res: Response, next: NextFunc
     const decodedPayload = JSON.parse(JSON.stringify(decoded));
     delete decodedPayload.iat;
     delete decodedPayload.exp;
-    req.user = decodedPayload;
+    res.locals.user = decodedPayload;
     next();
   });
 };
