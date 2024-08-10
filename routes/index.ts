@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { authenticateJwtToken } from '../utils/middlewares';
 import AdminRoutes from './admin.routes';
 import AuthRoutes from './auth.routes';
 import CustomerRoutes from './customer.routes';
@@ -10,6 +11,7 @@ router.get('/', (req, res) => {
 });
 
 router.use('/auth', AuthRoutes);
+router.use(authenticateJwtToken);
 router.use('/customer', CustomerRoutes);
 router.use('/admin', AdminRoutes);
 

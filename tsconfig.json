@@ -11,5 +11,5 @@
     "removeComments": true
   },
   "include": ["./**/*.ts"],
-  "files": ["types/express-session.d.ts"]
+  "files": ["types/express.d.ts", "types/express-session.d.ts"]
 }
