@@ -8,26 +8,24 @@ import connectDB from './mongoose/connect';
 import routes from './routes';
 
 dotenv.config();
+const corsOriginUrl = process.env.CORS_ORIGIN_URL;
+if (!corsOriginUrl) throw new Error('CORS origin url is missing');
+const mongodbUrl = process.env.MONGODB_URL;
+if (!mongodbUrl) throw new Error('MongoDB url is missing');
 
 const app: Application = express();
 const port = process.env.PORT || 8000;
 
-app.use(cors());
+app.use(cors({ origin: corsOriginUrl, credentials: true }));
 app.use(logger('dev'));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-// app.use(express.static(path.join(__dirname, "public")));
-// app.use(fileUpload());
-// app.use(
-//   session({ secret: 'key', resave: true, saveUninitialized: true, cookie: { maxAge: 600000 } }),
-// );
 app.use('/api/v1', routes);
 
 (async () => {
-  if (!process.env.MONGODB_URL) throw new Error('MongoDB url is missing');
   try {
-    connectDB(process.env.MONGODB_URL);
+    connectDB(mongodbUrl);
     app.listen(port, () => console.log(`Server started on http://localhost:${port}`));
   } catch (err) {
     console.log(err);
