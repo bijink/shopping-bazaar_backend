@@ -1,42 +1,52 @@
+// *both admin/seller and customer are using the app, so both are 'user'
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
+import { Types } from 'mongoose';
 import { authHelpers } from '../helpers';
+
+type UserTypes = {
+  _id: Types.ObjectId;
+  type: string;
+  name: string;
+  email: string;
+};
 
 const router = Router();
 
-router.use((req, res, next) => {
+const signToken = (user: UserTypes) => {
+  return jwt.sign(user, process.env.JWT_TOKEN_SECRET as string, {
+    // expiresIn: '7d',
+    expiresIn: '1d',
+  });
+};
+
+router.use((request, response, next) => {
   if (!process.env.JWT_TOKEN_SECRET)
-    res.status(500).send({ message: 'jwt secret key is missing in server' });
+    response.status(500).send({ message: 'jwt secret key is missing in server' });
   else {
     next();
   }
 });
-// *both admin/seller and customer are using the app, so both are 'user'
-router.post('/signup', (req, res) => {
+router.post('/signup', (request, response) => {
   authHelpers
-    .signup(req.body)
-    .then((response) => {
-      const token = jwt.sign(response.user, process.env.JWT_TOKEN_SECRET as string, {
-        expiresIn: '1d',
-      });
-      res.status(response.status).send({ user: response.user, token });
+    .signup(request.body)
+    .then((res) => {
+      const token = signToken(res.data.user);
+      response.status(res.status).send({ user: res.data.user, token });
     })
-    .catch((error) => {
-      res.status(error.status).send(error.response);
+    .catch((err) => {
+      response.status(err.status).send(err.data);
     });
 });
-router.post('/signin', (req, res) => {
+router.post('/signin', (request, response) => {
   authHelpers
-    .signin(req.body)
-    .then((response) => {
-      const token = jwt.sign(response.user, process.env.JWT_TOKEN_SECRET as string, {
-        expiresIn: 60 * 10,
-      });
-      // res.cookie('token', token, { maxAge: 1000 * 60 * 1 });
-      res.status(response.status).send({ user: response.user, token });
+    .signin(request.body)
+    .then((res) => {
+      const token = signToken(res.data.user);
+      response.status(res.status).send({ user: res.data.user, token });
     })
-    .catch((error) => {
-      res.status(error.status).send(error.response);
+    .catch((err) => {
+      response.status(err.status).send(err.data);
     });
 });
 
