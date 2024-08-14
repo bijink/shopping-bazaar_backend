@@ -1,12 +1,17 @@
 import { model, Schema } from 'mongoose';
 
 const userSchema = new Schema({
-  type: {
+  role: {
     type: String,
     enum: ['customer'], // Restricts the field to only this value
     default: 'customer', // Sets the default value
   },
-  name: {
+  fname: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  lname: {
     type: String,
     required: true,
     unique: true,

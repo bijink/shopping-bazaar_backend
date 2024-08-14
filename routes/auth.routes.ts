@@ -6,8 +6,9 @@ import { authHelpers } from '../helpers';
 
 type UserTypes = {
   _id: Types.ObjectId;
-  type: string;
-  name: string;
+  role: string;
+  fname: string;
+  lname: string;
   email: string;
 };
 
@@ -20,6 +21,17 @@ const signToken = (user: UserTypes) => {
   });
 };
 
+router.post('/send-otp', (request, response) => {
+  const { email } = request.body;
+  authHelpers
+    .sendOtp(email)
+    .then((res) => {
+      response.status(res.status).send(res.data);
+    })
+    .catch((err) => {
+      response.status(err.status).send(err.data);
+    });
+});
 router.use((request, response, next) => {
   if (!process.env.JWT_TOKEN_SECRET)
     response.status(500).send({ message: 'jwt secret key is missing in server' });
