@@ -3,13 +3,12 @@ import { customerHelpers } from '../helpers';
 
 const router = Router();
 
-// const verifyLogin = (req: Request, res: Response, next: NextFunction) => {
-//   if (req.session.loggedIn === 'user') {
-//     next();
-//   } else {
-//     res.redirect('/login');
-//   }
-// };
+router.use((request, response, next) => {
+  const user = response.locals.user;
+  if (user.role === 'customer') next();
+  else response.status(403).send({ message: 'only customers have permission to this end point' });
+});
+
 router.post('/add-to-cart/:userId/:prodId', (req, res) => {
   const userId = req.params.userId;
   const prodId = req.params.prodId;

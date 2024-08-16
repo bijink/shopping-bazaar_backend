@@ -9,12 +9,10 @@ const userSchema = new Schema({
   fname: {
     type: String,
     required: true,
-    unique: true,
   },
   lname: {
     type: String,
     required: true,
-    unique: true,
   },
   email: {
     type: String,

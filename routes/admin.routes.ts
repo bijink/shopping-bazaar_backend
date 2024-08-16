@@ -3,13 +3,12 @@ import { productHelpers } from '../helpers';
 
 const router = Router();
 
-// const verifyLogin = (req, res, next) => {
-//   if (req.session.loggedIn === 'admin') {
-//     next();
-//   } else {
-//     res.redirect('/admin/login');
-//   }
-// };
+router.use((request, response, next) => {
+  const user = response.locals.user;
+  if (user.role === 'admin') next();
+  else response.status(403).send({ message: 'only admin have permission to this end point' });
+});
+
 router.post('/product-add', (req, res) => {
   // console.log(req.body);
   // console.log(req.files.Image);
