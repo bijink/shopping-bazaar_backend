@@ -65,21 +65,6 @@ const authHelpers = {
       const userExist = await User.findOne({ email: userData.email });
       if (userExist)
         return Promise.reject({ status: 409, data: { message: 'email already in use' } });
-      // todo:: use validator instead
-      if (
-        !userData.fname ||
-        !userData.lname ||
-        !userData.email ||
-        !userData.password ||
-        !userData.otp
-      )
-        return Promise.reject({
-          status: 400,
-          data: {
-            message: 'name, email, password, otp are required',
-          },
-        });
-      // todo:: use validator instead
       // #verify otp
       const generatedOtp = await Otp.findOne({ email: userData.email, otp: userData.otp });
       if (!generatedOtp)
@@ -110,13 +95,6 @@ const authHelpers = {
   // #for both admin and customer
   signin: async (credentials: { email: string; password: string }) => {
     try {
-      if (!credentials.email || !credentials.password)
-        return Promise.reject({
-          status: 400,
-          data: {
-            message: 'email and password are required',
-          },
-        });
       const user = await User.findOne({ email: credentials.email });
       if (!user)
         return Promise.reject({ status: 401, data: { message: 'invalid email or password' } });

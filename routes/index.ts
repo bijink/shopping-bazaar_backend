@@ -11,8 +11,7 @@ router.get('/', (req, res) => {
 });
 
 router.use('/auth', AuthRoutes);
-router.use(authenticateJwtToken);
-router.use('/customer', CustomerRoutes);
-router.use('/admin', AdminRoutes);
+router.use('/admin', authenticateJwtToken, AdminRoutes);
+router.use('/customer', authenticateJwtToken, CustomerRoutes);
 
 export default router;
