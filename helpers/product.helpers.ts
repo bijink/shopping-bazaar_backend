@@ -1,5 +1,5 @@
-import { Product } from '../mongoose/models';
 import { ParsedQs } from 'qs';
+import { Product } from '../mongoose/models';
 
 const productHelpers = {
   addProduct: async (reqData: {
@@ -28,9 +28,10 @@ const productHelpers = {
   getProduct: async (prodId: ParsedQs[string]) => {
     try {
       const product = await Product.findById(prodId).exec();
-      return Promise.resolve(product);
+      if (!product) return Promise.reject({ status: 404, data: { message: 'product not found' } });
+      return Promise.resolve({ status: 200, data: product });
     } catch (error) {
-      return Promise.reject();
+      return Promise.reject({ status: 400, data: error });
     }
   },
   deleteProduct: async (prodId: string) => {

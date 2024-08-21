@@ -3,7 +3,7 @@ import { productHelpers } from '../helpers';
 
 const router = Router();
 
-router.post('/product-add', (req, res) => {
+router.post('/add-product', (req, res) => {
   // console.log(req.body);
   // console.log(req.files.Image);
   // productHelpers.addProduct(req.body, (id) => {
@@ -24,7 +24,7 @@ router.post('/product-add', (req, res) => {
       res.sendStatus(400);
     });
 });
-router.delete('/product-delete/:id', (req, res) => {
+router.delete('/delete-product/:id', (req, res) => {
   const prodId = req.params.id;
   productHelpers
     .deleteProduct(prodId)
@@ -41,22 +41,22 @@ router.delete('/product-delete/:id', (req, res) => {
       res.status(400).send(error);
     });
 });
-router.get('/product-get', async (req, res) => {
-  const prodId = req.query.id;
+router.get('/get-product', async (request, response) => {
+  const prodId = request.query.id;
   if (prodId) {
     productHelpers
       .getProduct(prodId)
-      .then((response) => {
-        res.status(200).send(response);
+      .then((res) => {
+        response.status(res.status).send(res.data);
       })
-      .catch(() => {
-        res.sendStatus(400);
+      .catch((err) => {
+        response.status(err.status).send(err.data);
       });
   } else {
-    res.status(400).send('Product ID required');
+    response.status(400).send('product id required');
   }
 });
-router.get('/product-get-all', async (req, res) => {
+router.get('/get-all-product', async (req, res) => {
   // console.log(res.locals.user);
   productHelpers
     .getAllProduct()
@@ -67,7 +67,7 @@ router.get('/product-get-all', async (req, res) => {
       res.sendStatus(400);
     });
 });
-router.patch('/product-edit/:id', (req, res) => {
+router.patch('/edit-product/:id', (req, res) => {
   const prodId = req.params.id;
   productHelpers
     .updateProduct(prodId, req.body)

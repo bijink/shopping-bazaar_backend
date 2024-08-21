@@ -56,7 +56,9 @@ router.post(
     }
     const result = validationResult(request);
     if (!result.isEmpty()) {
-      return response.send({ message: 'request validation failed', errors: result.array() });
+      return response
+        .status(400)
+        .send({ message: 'request validation failed', errors: result.array() });
     }
     next();
   },

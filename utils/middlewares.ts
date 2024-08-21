@@ -50,7 +50,7 @@ export const validateRequest = (validations: ContextRunner[]) => {
       if (!result.isEmpty()) results.push(result.array()[0]);
     }
     if (results.length) {
-      return res.status(400).json({ message: 'request validation failed', errors: results });
+      return res.status(400).send({ message: 'request validation failed', errors: results });
     } else next();
   };
 };
