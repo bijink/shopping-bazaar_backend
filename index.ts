@@ -1,5 +1,4 @@
 /* eslint no-console: off */
-import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Application } from 'express';
@@ -20,7 +19,6 @@ app.use(cors({ origin: corsOriginUrl, credentials: true }));
 app.use(logger('dev'));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
 app.use('/api/v1', routes);
 
 (async () => {
