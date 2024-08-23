@@ -23,6 +23,10 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
+  imgFilename: {
+    type: String,
+    required: true,
+  },
 });
 
 const User = model('User', userSchema);

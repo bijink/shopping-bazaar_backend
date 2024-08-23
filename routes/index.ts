@@ -13,17 +13,12 @@ router.get('/', (request, response) => {
   response.send('Welcome to "Shopping Bazaar" e-commerce web application api server');
 });
 // #upload-file route
-router.post(
-  '/upload/image',
-  authenticateJwtToken,
-  uploadFile.single('file'),
-  (request, response) => {
-    if (!request.file) return response.status(400).send({ message: 'no file found on request' });
-    response.status(201).send({ message: 'file uploaded successfully', file: request.file });
-  },
-);
+router.post('/upload/image', uploadFile.single('file'), (request, response) => {
+  if (!request.file) return response.status(400).send({ message: 'no file found on request' });
+  response.status(201).send({ message: 'file uploaded successfully', file: request.file });
+});
 // #get-image route
-router.get('/image/:imageName', authenticateJwtToken, (request, response) => {
+router.get('/image/:imageName', (request, response) => {
   const { imageName } = request.params;
   const image = path.join(process.cwd(), 'uploads/image', imageName);
   response.status(200).sendFile(image);
