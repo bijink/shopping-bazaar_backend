@@ -72,7 +72,7 @@ const authHelpers = {
       userData.password = await bcrypt.hash(userData.password, 10);
       const user = new User(userData);
       await user.save();
-      const insertedUser = await User.findById(user._id, '_id role name email').exec();
+      const insertedUser = await User.findById(user._id).select('-password').lean().exec();
       if (!insertedUser)
         return Promise.reject({
           status: 500,
@@ -80,14 +80,7 @@ const authHelpers = {
             message: 'something went wrong, please try again later',
           },
         });
-      const newUserObj = {
-        _id: insertedUser._id,
-        role: insertedUser.role,
-        fname: insertedUser.fname,
-        lname: insertedUser.lname,
-        email: insertedUser.email,
-      };
-      return Promise.resolve({ status: 201, data: { user: newUserObj } });
+      return Promise.resolve({ status: 201, data: { user: insertedUser } });
     } catch (error) {
       return Promise.reject({ status: 409, data: error });
     }

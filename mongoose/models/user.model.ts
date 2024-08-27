@@ -25,7 +25,6 @@ const userSchema = new Schema({
   },
   imgFilename: {
     type: String,
-    required: true,
   },
 });
 
