@@ -4,17 +4,6 @@ import { productHelpers } from '../helpers';
 const router = Router();
 
 router.post('/add-product', (req, res) => {
-  // console.log(req.body);
-  // console.log(req.files.Image);
-  // productHelpers.addProduct(req.body, (id) => {
-  //   console.log("ID:: ", id);
-  //   const image = req.files.Image;
-  //   Add image
-  //   image.mv('./public/images/product-images/' + id + '.png', (err, done) => {
-  //     if (!err) res.render('admin/add-product', { admin: true });
-  //     else console.log(err);
-  //   });
-  // });
   productHelpers
     .addProduct(req.body)
     .then((respose) => {
@@ -72,10 +61,6 @@ router.patch('/edit-product/:id', (req, res) => {
   productHelpers
     .updateProduct(prodId, req.body)
     .then((response) => {
-      // const image = req.files.Image;
-      // if (image) {
-      //   image.mv('./public/images/product-images/' + prodId + '.png');
-      // }
       res.status(200).send(response);
     })
     .catch(() => {

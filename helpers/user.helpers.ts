@@ -8,7 +8,7 @@ const userHelpers = {
       lname?: string;
       email?: string;
       password?: string;
-      imgFilename?: string;
+      image?: string;
     },
   ) => {
     try {

@@ -1,8 +1,10 @@
 import { Router } from 'express';
-import fs from 'fs';
+import { checkSchema } from 'express-validator';
+import { promises } from 'fs';
 import path from 'path';
-import { authenticateJwtToken, authenticateUserRole } from '../utils/middlewares';
+import { authenticateJwtToken, authenticateUserRole, validateRequest } from '../utils/middlewares';
 import { uploadFile } from '../utils/multer';
+import { fileUploadSchema } from '../utils/validationSchemas';
 import AdminRoutes from './admin.routes';
 import AuthRoutes from './auth.routes';
 import CustomerRoutes from './customer.routes';
@@ -18,10 +20,26 @@ router.get('/', (request, response) => {
 router.post(
   '/upload-file/image',
   authenticateJwtToken,
-  uploadFile.single('file'),
+  validateRequest(checkSchema(fileUploadSchema[0])),
+  (request, response, next) => {
+    request.query.count = (0).toString();
+    next();
+  },
+  uploadFile.array('files', 4),
   (request, response) => {
-    if (!request.file) return response.status(400).send({ message: 'no file found on request' });
-    response.status(201).send({ message: 'file uploaded successfully', file: request.file });
+    if (!request.files) return response.status(400).send({ message: 'no file found on request' });
+
+    const fileNames: string[] = [];
+    const reqFiles = request?.files as Express.Multer.File[];
+    const reqFilesLength = reqFiles?.length as number;
+    if (reqFiles?.length) {
+      for (let i = 0; i < reqFilesLength; i++) {
+        if (reqFiles[i].filename !== 'no-image') fileNames.push(reqFiles[i].filename);
+      }
+    }
+    response
+      .status(201)
+      .send({ message: 'file uploaded successfully', files: request.files, filenames: fileNames });
   },
 );
 // #get-image route
@@ -31,12 +49,17 @@ router.get('/get-image/:imageName', (request, response) => {
   response.status(200).sendFile(image);
 });
 // #delete-image route
-router.delete('/delete-image/:imageName', authenticateJwtToken, (request, response) => {
-  const { imageName } = request.params;
-  fs.unlink(`uploads/image/${imageName}`, (err) => {
-    if (!err) response.status(200).send({ message: 'file deleted successfully' });
-    else response.status(404).send(err);
-  });
+router.delete('/delete-image', authenticateJwtToken, (request, response) => {
+  const reqFileNames = request.body as string[];
+  async function deleteFiles(files: string[]) {
+    try {
+      await Promise.all(files.map((file) => promises.unlink(`uploads/image/${file}`)));
+      response.status(200).send({ message: 'all files deleted successfully' });
+    } catch (err) {
+      response.status(404).send(err);
+    }
+  }
+  deleteFiles(reqFileNames);
 });
 // #other routes
 router.use('/auth', AuthRoutes);

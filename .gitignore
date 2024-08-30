@@ -22,6 +22,6 @@ yarn-debug.log*
 yarn-error.log*
 
 /uploads/image/*
-!.gitkeep
+!/uploads/image/no-image
 
 __**

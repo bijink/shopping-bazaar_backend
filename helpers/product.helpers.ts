@@ -53,6 +53,7 @@ const productHelpers = {
       category?: string;
       price?: number;
       description?: string;
+      images?: string[];
     },
   ) => {
     try {

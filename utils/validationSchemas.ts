@@ -1,3 +1,5 @@
+import { Schema } from 'express-validator';
+
 export const sendOtpSchema = {
   email: {
     notEmpty: {
@@ -61,3 +63,34 @@ export const userSigninSchema = {
     },
   },
 };
+export const fileUploadSchema: Schema[] = [
+  {
+    for: {
+      in: ['query'],
+      notEmpty: {
+        errorMessage: 'FOR is required',
+      },
+    },
+    id: {
+      in: ['query'],
+      notEmpty: {
+        errorMessage: 'ID is required',
+      },
+      isMongoId: {
+        errorMessage: 'ID must be a valid MongoDB ObjectId',
+      },
+    },
+  },
+  {
+    file: {
+      custom: {
+        options: (value, { req }) => {
+          if (!req.files || req.files.length === 2) {
+            throw new Error('File is required');
+          }
+          return true;
+        },
+      },
+    },
+  },
+];

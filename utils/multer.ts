@@ -3,12 +3,12 @@ import slugify from 'slugify';
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const subFolderName = req.url.slice(1).split(/[/?]/)[1];
+    const subFolderName = req.url?.slice(1).split(/[/?]/)[1] || 'default';
     cb(null, `uploads/${subFolderName}`);
   },
   filename: (req, file, cb) => {
-    const fileFor = req.query.for || 'file';
-    const timestamp = Date.now();
+    const { for: fileFor, id } = req.query;
+    const idWithFileCount = `${id}_${req.query.count}`;
     // Split the filename into base and extension
     const originalName = file.originalname;
     const [baseName, ext] =
@@ -31,13 +31,20 @@ const storage = multer.diskStorage({
       return sanitizedBaseName + ext;
     };
 
-    const uploadingFileName = `${fileFor}-${timestamp}-${sanitizeFilename(baseName, ext)}`;
+    let uploadingFileName = '';
+    if (originalName === 'no-image') {
+      uploadingFileName = originalName;
+    } else {
+      uploadingFileName = `${fileFor}-${idWithFileCount}-${sanitizeFilename(baseName, ext)}`;
+    }
+    const fileCount = parseInt(req.query.count as string);
+    req.query.count = (fileCount + 1).toString();
 
     cb(null, uploadingFileName);
   },
 });
 
-// const fileFilter = (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
+// const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: FileFilterCallback) => {
 //   // Accept image files only
 //   if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
 //     cb(null, true);

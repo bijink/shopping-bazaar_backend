@@ -23,7 +23,7 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
-  imgFilename: {
+  image: {
     type: String,
   },
 });
