@@ -1,16 +1,19 @@
 import { Router } from 'express';
+import { checkSchema } from 'express-validator';
 import { productHelpers } from '../helpers';
+import { validateRequest } from '../utils/middlewares';
+import { productAddSchema } from '../utils/validationSchemas';
 
 const router = Router();
 
-router.post('/add-product', (req, res) => {
+router.post('/add-product', validateRequest(checkSchema(productAddSchema)), (request, response) => {
   productHelpers
-    .addProduct(req.body)
-    .then((respose) => {
-      res.status(200).send(respose.product);
+    .addProduct(request.body)
+    .then((res) => {
+      response.status(res.status).send(res.data);
     })
-    .catch(() => {
-      res.sendStatus(400);
+    .catch((err) => {
+      response.status(err.status).send(err.data);
     });
 });
 router.delete('/delete-product/:id', (req, res) => {

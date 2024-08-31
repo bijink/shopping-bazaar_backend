@@ -7,14 +7,15 @@ const productHelpers = {
     category: string;
     price: number;
     description: string;
+    suitableFor: string[];
   }) => {
     try {
       const product = new Product(reqData);
       await product.save();
       const insertedProduct = await Product.findById(product._id).exec();
-      return Promise.resolve({ product: insertedProduct });
+      return Promise.resolve({ status: 201, data: { product: insertedProduct } });
     } catch (error) {
-      return Promise.reject();
+      return Promise.reject({ status: 400, data: error });
     }
   },
   getAllProduct: async () => {

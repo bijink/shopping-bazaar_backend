@@ -94,3 +94,83 @@ export const fileUploadSchema: Schema[] = [
     },
   },
 ];
+
+export const productAddSchema = {
+  name: {
+    notEmpty: true,
+    errorMessage: 'name is required',
+  },
+  suitableFor: {
+    notEmpty: {
+      errorMessage: 'suitableFor is required',
+    },
+    isArray: {
+      options: { min: 1 },
+      errorMessage: 'suitableFor must be an array with at least one value',
+    },
+    custom: {
+      options: (value: string[]) => {
+        // Ensure each item in the array is one of the allowed values
+        const allowedValues = ['children', 'men', 'women'];
+        return value.every((item) => allowedValues.includes(item));
+      },
+      errorMessage: 'invalid value in suitableFor array. allowed values are (children, men, women)',
+    },
+  },
+  category: {
+    notEmpty: true,
+    errorMessage: 'category is required',
+  },
+  size: {
+    notEmpty: {
+      errorMessage: 'size is required',
+    },
+    isArray: {
+      options: { min: 1 },
+      errorMessage: 'size must be an array with at least one value',
+    },
+    custom: {
+      options: (value: string[]) => {
+        const allowedValues = ['xxs', 'xs', 's', 'm', 'l', 'xl', '2xl', '3xl'];
+        return value.every((item) => allowedValues.includes(item));
+      },
+      errorMessage:
+        'invalid size in size array, allowed values are (xxs, xs, s, m, l, xl, 2xl, 3xl)',
+    },
+  },
+  price: {
+    notEmpty: {
+      errorMessage: 'price is required',
+    },
+    isNumeric: {
+      errorMessage: 'price must be a valid number',
+    },
+    toFloat: true,
+  },
+  color: {
+    notEmpty: {
+      errorMessage: 'color is required',
+    },
+    isArray: {
+      options: { min: 1 },
+      errorMessage: 'color must be an array with at least one value',
+    },
+  },
+  description: {
+    notEmpty: {
+      errorMessage: 'description is required',
+    },
+  },
+  details: {
+    notEmpty: {
+      errorMessage: 'details is required',
+    },
+  },
+  highlights: {
+    optional: true, // Makes the field optional
+    isArray: {
+      options: { min: 0 },
+      errorMessage: 'highlights must be an array',
+    },
+  },
+};
