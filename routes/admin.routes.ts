@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { checkSchema } from 'express-validator';
 import { productHelpers } from '../helpers';
+import { deleteFiles } from '../utils/deleteFiles';
 import { validateRequest } from '../utils/middlewares';
 import { productAddSchema } from '../utils/validationSchemas';
 
@@ -16,21 +17,18 @@ router.post('/add-product', validateRequest(checkSchema(productAddSchema)), (req
       response.status(err.status).send(err.data);
     });
 });
-router.delete('/delete-product/:id', (req, res) => {
-  const prodId = req.params.id;
+router.delete('/delete-product/:id', (request, response) => {
+  const prodId = request.params.id;
   productHelpers
     .deleteProduct(prodId)
-    .then(() => {
-      // console.log('DEL RES:', response);
-      // Delete the file
-      // fs.unlink('./public/images/product-images/' + prodId + '.png', (err) => {
-      //   if (!err) res.redirect('/admin');
-      //   else console.log(err);
-      // });
-      res.status(200).send('Product deleted');
+    .then((res) => {
+      const deletedProductImages = res.data.deletedProduct.images;
+      deleteFiles(deletedProductImages).then(() => {
+        response.status(res.status).send({ message: res.data.message });
+      });
     })
-    .catch((error) => {
-      res.status(400).send(error);
+    .catch((err) => {
+      response.status(err.status).send(err.data);
     });
 });
 router.get('/get-product', async (request, response) => {
@@ -48,26 +46,25 @@ router.get('/get-product', async (request, response) => {
     response.status(400).send('product id required');
   }
 });
-router.get('/get-all-product', async (req, res) => {
-  // console.log(res.locals.user);
+router.get('/get-all-product', async (request, response) => {
   productHelpers
     .getAllProduct()
-    .then((response) => {
-      res.status(200).send(response);
+    .then((res) => {
+      response.status(res.status).send(res.data);
     })
-    .catch(() => {
-      res.sendStatus(400);
+    .catch((err) => {
+      response.status(err.status).send(err.data);
     });
 });
-router.patch('/edit-product/:id', (req, res) => {
-  const prodId = req.params.id;
+router.patch('/edit-product/:id', (request, response) => {
+  const prodId = request.params.id;
   productHelpers
-    .updateProduct(prodId, req.body)
-    .then((response) => {
-      res.status(200).send(response);
+    .updateProduct(prodId, request.body)
+    .then((res) => {
+      response.status(res.status).send(res.data);
     })
-    .catch(() => {
-      res.sendStatus(400);
+    .catch((err) => {
+      response.status(err.status).send(err.data);
     });
 });
 // ?:

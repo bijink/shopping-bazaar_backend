@@ -20,11 +20,9 @@ const router = Router();
 const signToken = (user: UserTypes) => {
   try {
     return jwt.sign(user, process.env.JWT_TOKEN_SECRET as string, {
-      // expiresIn: '7d',
-      expiresIn: '1d',
+      expiresIn: '7d',
     });
   } catch (error) {
-    // console.error(error);
     return null;
   }
 };

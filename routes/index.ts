@@ -3,6 +3,7 @@ import { checkSchema } from 'express-validator';
 import fs from 'fs';
 import path from 'path';
 import { Base64Image } from '../types/global.type';
+import { deleteFiles } from '../utils/deleteFiles';
 import { authenticateJwtToken, authenticateUserRole, validateRequest } from '../utils/middlewares';
 import { uploadFile } from '../utils/multer';
 import { fileUploadSchema } from '../utils/validationSchemas';
@@ -70,15 +71,13 @@ router.post('/get-multi-images', (request, response) => {
 // #delete-image route
 router.delete('/delete-image', authenticateJwtToken, (request, response) => {
   const reqFileNames = request.body as string[];
-  async function deleteFiles(files: string[]) {
-    try {
-      await Promise.all(files.map((file) => fs.promises.unlink(`uploads/image/${file}`)));
-      response.status(200).send({ message: 'all files deleted successfully' });
-    } catch (err) {
+  deleteFiles(reqFileNames)
+    .then(() => {
+      response.sendStatus(204);
+    })
+    .catch((err) => {
       response.status(404).send(err);
-    }
-  }
-  deleteFiles(reqFileNames);
+    });
 });
 // #other routes
 router.use('/auth', AuthRoutes);

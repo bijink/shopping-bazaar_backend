@@ -14,19 +14,32 @@ const productSchema = new Schema({
     type: String,
     required: true,
   },
-  size: {
-    type: [String],
-    enum: ['xxs', 'xs', 's', 'm', 'l', 'xl', '2xl', '3xl'],
-    required: true,
+  sizes: {
+    xxs: { type: Boolean, required: true },
+    xs: { type: Boolean, required: true },
+    s: { type: Boolean, required: true },
+    m: { type: Boolean, required: true },
+    l: { type: Boolean, required: true },
+    xl: { type: Boolean, required: true },
+    '2xl': { type: Boolean, required: true },
+    '3xl': { type: Boolean, required: true },
   },
   price: {
     type: Number,
     required: true,
   },
-  color: {
-    type: [String],
-    require: true,
-  },
+  colors: [
+    {
+      name: {
+        type: String,
+        required: true,
+      },
+      hex: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
   description: {
     type: String,
     require: true,

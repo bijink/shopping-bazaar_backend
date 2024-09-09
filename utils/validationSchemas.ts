@@ -1,4 +1,5 @@
 import { Schema } from 'express-validator';
+import { Product } from '../types/global.type';
 
 export const sendOtpSchema = {
   email: {
@@ -16,10 +17,6 @@ export const userSignupSchema = {
     notEmpty: true,
     errorMessage: 'first name is required',
   },
-  // lname: {
-  //   notEmpty: true,
-  //   errorMessage: 'last name is required',
-  // },
   email: {
     notEmpty: {
       errorMessage: 'email is required',
@@ -81,18 +78,6 @@ export const fileUploadSchema: Schema[] = [
       },
     },
   },
-  {
-    file: {
-      custom: {
-        options: (value, { req }) => {
-          if (!req.files || req.files.length === 2) {
-            throw new Error('File is required');
-          }
-          return true;
-        },
-      },
-    },
-  },
 ];
 
 export const productAddSchema = {
@@ -121,21 +106,36 @@ export const productAddSchema = {
     notEmpty: true,
     errorMessage: 'category is required',
   },
-  size: {
-    notEmpty: {
-      errorMessage: 'size is required',
-    },
-    isArray: {
-      options: { min: 1 },
-      errorMessage: 'size must be an array with at least one value',
-    },
+  sizes: {
     custom: {
-      options: (value: string[]) => {
-        const allowedValues = ['xxs', 'xs', 's', 'm', 'l', 'xl', '2xl', '3xl'];
-        return value.every((item) => allowedValues.includes(item));
+      options: (size: Product['sizes']) => {
+        // Ensure `size` is an object
+        if (typeof size !== 'object' || Array.isArray(size)) {
+          throw new Error('Size must be an object');
+        }
+        const validFields = ['xxs', 'xs', 's', 'm', 'l', 'xl', '2xl', '3xl'];
+        // Ensure all required fields are present and are booleans
+        for (const field of validFields) {
+          if (!(field in size)) {
+            throw new Error(`Missing required field: ${field}`);
+          }
+          // eslint-disable-next-line  @typescript-eslint/no-explicit-any
+          if (typeof (size as any)[field] !== 'boolean') {
+            throw new Error(`Field ${field} must be a boolean`);
+          }
+        }
+        // Ensure no extra fields are present
+        const extraFields = Object.keys(size).filter((field) => !validFields.includes(field));
+        if (extraFields.length > 0) {
+          throw new Error(`Invalid extra fields: ${extraFields.join(', ')}`);
+        }
+        // Check if at least one field is true
+        const atLeastOneTrue = Object.values(size).includes(true);
+        if (!atLeastOneTrue) {
+          throw new Error('At least one field must be true');
+        }
+        return true;
       },
-      errorMessage:
-        'invalid size in size array, allowed values are (xxs, xs, s, m, l, xl, 2xl, 3xl)',
     },
   },
   price: {
@@ -147,13 +147,43 @@ export const productAddSchema = {
     },
     toFloat: true,
   },
-  color: {
+  colors: {
     notEmpty: {
-      errorMessage: 'color is required',
+      errorMessage: 'colors is required',
     },
     isArray: {
       options: { min: 1 },
-      errorMessage: 'color must be an array with at least one value',
+      errorMessage: 'colors must be an array of object with at least one value',
+    },
+    custom: {
+      options: (colors: Product['colors']) => {
+        const hexValues = new Set(); // To track unique hex values
+        for (const color of colors) {
+          // Check that each item is an object
+          if (typeof color !== 'object' || Array.isArray(color)) {
+            throw new Error('Each item in colors must be an object with fields of name, hex');
+          }
+          // Check that 'name' exists and is a non-empty string
+          if (!color.name || typeof color.name !== 'string' || color.name.trim() === '') {
+            throw new Error('Each color object must have a valid "name" property');
+          }
+          // Check that 'hex' exists and is a non-empty string
+          if (!color.hex || typeof color.hex !== 'string' || color.hex.trim() === '') {
+            throw new Error('Each color object must have a valid "hex" property');
+          }
+          // Check if the hex value is a valid hex color
+          const hexPattern = /^#([0-9A-F]{3}|[0-9A-F]{6})$/i;
+          if (!hexPattern.test(color.hex)) {
+            throw new Error(`"${color.hex}" is not a valid hex color code`);
+          }
+          // Ensure no duplicate hex codes
+          if (hexValues.has(color.hex)) {
+            throw new Error(`Duplicate hex color found: "${color.hex}"`);
+          }
+          hexValues.add(color.hex); // Add hex value to the set
+        }
+        return true;
+      },
     },
   },
   description: {

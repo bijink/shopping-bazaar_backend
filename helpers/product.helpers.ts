@@ -1,14 +1,9 @@
 import { ParsedQs } from 'qs';
 import { Product } from '../mongoose/models';
+import { Product as ProductType } from '../types/global.type';
 
 const productHelpers = {
-  addProduct: async (reqData: {
-    name: string;
-    category: string;
-    price: number;
-    description: string;
-    suitableFor: string[];
-  }) => {
+  addProduct: async (reqData: ProductType) => {
     try {
       const product = new Product(reqData);
       await product.save();
@@ -21,9 +16,9 @@ const productHelpers = {
   getAllProduct: async () => {
     try {
       const products = await Product.find({});
-      return Promise.resolve(products);
+      return Promise.resolve({ status: 200, data: products });
     } catch (error) {
-      return Promise.reject();
+      return Promise.reject({ status: 500, data: error });
     }
   },
   getProduct: async (prodId: ParsedQs[string]) => {
@@ -32,19 +27,25 @@ const productHelpers = {
       if (!product) return Promise.reject({ status: 404, data: { message: 'product not found' } });
       return Promise.resolve({ status: 200, data: product });
     } catch (error) {
-      return Promise.reject({ status: 400, data: error });
+      return Promise.reject({ status: 500, data: error });
     }
   },
   deleteProduct: async (prodId: string) => {
     try {
+      const product = await Product.findOne({ _id: prodId });
+      if (!product) return Promise.reject({ status: 404, data: { message: 'product not found' } });
       const deletedProduct = await Product.findByIdAndDelete(prodId);
-      if (deletedProduct) {
-        return Promise.resolve(deletedProduct);
-      } else {
-        throw 'Product not found';
-      }
+      if (!deletedProduct)
+        return Promise.reject({
+          status: 500,
+          data: { message: 'something went wrong, please try again later' },
+        });
+      return Promise.resolve({
+        status: 200,
+        data: { message: 'product deleted successfully', deletedProduct },
+      });
     } catch (error) {
-      return Promise.reject(error);
+      return Promise.reject({ status: 500, data: { error } });
     }
   },
   updateProduct: async (
@@ -58,11 +59,18 @@ const productHelpers = {
     },
   ) => {
     try {
+      const product = await Product.findOne({ _id: prodId });
+      if (!product) return Promise.reject({ status: 404, data: { message: 'product not found' } });
       await Product.updateOne({ _id: prodId }, detailsToUpdate);
       const updatedProduct = await Product.findById(prodId).exec();
-      return Promise.resolve(updatedProduct);
+      if (!updatedProduct)
+        return Promise.reject({
+          status: 500,
+          data: { message: 'something went wrong, please try again later' },
+        });
+      return Promise.resolve({ status: 200, data: { product: updatedProduct } });
     } catch (error) {
-      return Promise.reject();
+      return Promise.reject({ status: 500, data: error });
     }
   },
 };
