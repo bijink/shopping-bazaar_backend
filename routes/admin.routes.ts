@@ -23,9 +23,23 @@ router.delete('/delete-product/:id', (request, response) => {
     .deleteProduct(prodId)
     .then((res) => {
       const deletedProductImages = res.data.deletedProduct.images;
-      deleteFiles(deletedProductImages).then(() => {
-        response.status(res.status).send({ message: res.data.message });
-      });
+      deleteFiles(deletedProductImages)
+        .then((deleteFilesRes) => {
+          response.status(res.status).send({
+            product: {
+              message: res.data.message,
+            },
+            images: deleteFilesRes,
+          });
+        })
+        .catch((deletedFilesErr) => {
+          response.status(res.status).send({
+            product: {
+              message: res.data.message,
+            },
+            images: deletedFilesErr,
+          });
+        });
     })
     .catch((err) => {
       response.status(err.status).send(err.data);
