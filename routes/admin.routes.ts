@@ -45,31 +45,6 @@ router.delete('/delete-product/:id', (request, response) => {
       response.status(err.status).send(err.data);
     });
 });
-router.get('/get-product', async (request, response) => {
-  const prodId = request.query.id;
-  if (prodId) {
-    productHelpers
-      .getProduct(prodId)
-      .then((res) => {
-        response.status(res.status).send(res.data);
-      })
-      .catch((err) => {
-        response.status(err.status).send(err.data);
-      });
-  } else {
-    response.status(400).send('product id required');
-  }
-});
-router.get('/get-all-product', async (request, response) => {
-  productHelpers
-    .getAllProduct()
-    .then((res) => {
-      response.status(res.status).send(res.data);
-    })
-    .catch((err) => {
-      response.status(err.status).send(err.data);
-    });
-});
 router.patch('/edit-product/:id', (request, response) => {
   const prodId = request.params.id;
   productHelpers

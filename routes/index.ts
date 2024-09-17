@@ -81,7 +81,7 @@ router.delete('/delete-image', authenticateJwtToken, (request, response) => {
 });
 // #other routes
 router.use('/auth', AuthRoutes);
-router.use('/user', authenticateJwtToken, UserRoutes);
+router.use('/user', UserRoutes);
 router.use('/admin', authenticateJwtToken, authenticateUserRole('admin'), AdminRoutes);
 router.use('/customer', authenticateJwtToken, authenticateUserRole('customer'), CustomerRoutes);
 
