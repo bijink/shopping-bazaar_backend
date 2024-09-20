@@ -1,79 +1,80 @@
 import { Router } from 'express';
+import { checkSchema } from 'express-validator';
 import { customerHelpers } from '../helpers';
+import { validateRequest } from '../utils/middlewares';
+import { cartAddSchema } from '../utils/validationSchemas';
 
 const router = Router();
 
-router.post('/add-to-cart/:userId/:prodId', (req, res) => {
-  const userId = req.params.userId;
-  const prodId = req.params.prodId;
-  // console.log("api called");
-  // console.log(userId, prodId);
-  // console.log(typeof userId, prodId);
-  // res.sendStatus(200);
+router.post(
+  '/add-to-cart/:userId/:prodId',
+  validateRequest(checkSchema(cartAddSchema)),
+  (request, response) => {
+    const { userId, prodId } = request.params;
+    customerHelpers
+      .addToCart(userId, prodId, request.body)
+      .then((res) => {
+        response.status(res.status).send(res.data);
+      })
+      .catch((err) => {
+        response.status(err.status).send(err.data);
+      });
+  },
+);
+router.get('/get-cart-items/:userId', (request, response) => {
+  const { userId } = request.params;
   customerHelpers
-    .addToCart(userId, prodId)
-    .then((response) => {
-      res.status(200).send(response);
+    .getCartItems(userId)
+    .then((res) => {
+      response.status(res.status).send(res.data);
     })
-    .catch((error) => {
-      res.status(400).send(error);
+    .catch((err) => {
+      response.status(err.status).send(err.data);
     });
 });
-router.delete('/remove-from-cart', (req, res) => {
-  const { userId, prodId } = req.query;
+router.delete('/remove-from-cart', (request, response) => {
+  const { userId, cartItemId } = request.query;
   customerHelpers
-    .removeFromCart(userId, prodId)
-    .then((response) => {
-      res.status(200).send(response);
+    .removeFromCart(userId, cartItemId)
+    .then((res) => {
+      response.sendStatus(res.status);
     })
-    .catch((error) => {
-      res.status(400).send(error);
+    .catch((err) => {
+      response.status(err.status).send(err.data);
     });
 });
-router.patch('/change-cart-item-quantity', (req, res) => {
-  const { userId, prodId, count } = req.query;
-  const countNum = Number(count);
-  customerHelpers
-    .changeCartItemQuantity(userId, prodId, countNum)
-    .then((response) => {
-      // const cartTotalAmount = await customerHelpers.getCartTotalAmount(userId);
-      res.status(200).send(response);
-    })
-    .catch((error) => {
-      res.status(400).send(error);
-    });
-});
-router.get('/get-cart-products/:userId', (req, res) => {
-  const { userId } = req.params;
-  customerHelpers
-    .getCartProducts(userId)
-    .then((response) => {
-      res.status(200).send(response);
-    })
-    .catch((error) => {
-      res.status(400).send(error);
-    });
-});
-router.get('/get-cart-count/:userId', (req, res) => {
-  const { userId } = req.params;
+router.get('/get-cart-count/:userId', (request, response) => {
+  const { userId } = request.params;
   customerHelpers
     .getCartCount(userId)
-    .then((response) => {
-      res.status(200).send(response);
+    .then((res) => {
+      response.status(res.status).send(res.data);
     })
-    .catch((error) => {
-      res.status(400).send(error);
+    .catch((err) => {
+      response.status(err.status).send(err.data);
     });
 });
-router.get('/get-cart-amount/:userId', (req, res) => {
-  const { userId } = req.params;
+router.get('/get-cart-amount/:userId', (request, response) => {
+  const { userId } = request.params;
   customerHelpers
     .getCartTotalAmount(userId)
-    .then((response) => {
-      res.status(200).send(response);
+    .then((res) => {
+      response.status(res.status).send(res.data);
     })
-    .catch((error) => {
-      res.status(400).send(error);
+    .catch((err) => {
+      response.status(err.status).send(err.data);
+    });
+});
+router.patch('/change-cart-item-quantity', (request, response) => {
+  const { userId, cartItemId, count } = request.query;
+  const countNum = Number(count);
+  customerHelpers
+    .changeCartItemQuantity(userId, cartItemId, countNum)
+    .then((res) => {
+      response.status(res.status).send(res.data);
+    })
+    .catch((err) => {
+      response.status(err.status).send(err.data);
     });
 });
 // router.post('/place-order', async (req, res) => {

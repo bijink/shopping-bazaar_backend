@@ -47,8 +47,19 @@ router.post(
 // #get-image route
 router.get('/get-image/:imageName', (request, response) => {
   const { imageName } = request.params;
-  const image = path.join(process.cwd(), 'uploads/image', imageName);
-  response.status(200).sendFile(image);
+  const imagePath = path.join(process.cwd(), 'uploads/image', imageName);
+  let image;
+  if (fs.existsSync(imagePath)) {
+    const fileData = fs.readFileSync(imagePath);
+    image = {
+      name: imageName,
+      data: fileData.toString('base64'),
+      mimeType: `image/${imageName.split('.')[1]}`,
+    };
+  } else {
+    response.status(404).send({ message: 'image not found' });
+  }
+  response.status(200).send(image);
 });
 // #get-multi-images route
 router.post('/get-multi-images', (request, response) => {
@@ -61,7 +72,7 @@ router.post('/get-multi-images', (request, response) => {
         return {
           name: imageName,
           data: fileData.toString('base64'),
-          mimeType: imageName.split('.')[1],
+          mimeType: `image/${imageName.split('.')[1]}`,
         };
       }
     } else return null;

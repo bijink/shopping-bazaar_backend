@@ -204,3 +204,33 @@ export const productAddSchema = {
     },
   },
 };
+
+export const cartAddSchema = {
+  color: {
+    notEmpty: {
+      errorMessage: 'Color is required',
+    },
+    custom: {
+      options: (color: { name: string; hex: string }) => {
+        if (!color.name || !color.hex) {
+          throw new Error('Color must have "name" and "hex" fields');
+        }
+        // Check if the hex value is a valid hex color
+        const hexPattern = /^#([0-9A-F]{3}|[0-9A-F]{6})$/i;
+        if (!hexPattern.test(color.hex)) {
+          throw new Error(`"${color.hex}" is not a valid hex color code`);
+        }
+        return true;
+      },
+    },
+  },
+  size: {
+    notEmpty: {
+      errorMessage: 'Size is required',
+    },
+    isIn: {
+      options: [['xxs', 'xs', 's', 'm', 'l', 'xl', '2xl', '3xl']],
+      errorMessage: 'Size must be one of (xxs, xs, s, m, l, xl, 2xl, 3xl)',
+    },
+  },
+};

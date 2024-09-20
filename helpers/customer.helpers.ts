@@ -1,56 +1,77 @@
 // import Razorpay from 'razorpay';
 import { Types } from 'mongoose';
 import { ParsedQs } from 'qs';
-import { Cart, Product } from '../mongoose/models';
-
-// const instance = new Razorpay({
-//   key_id: 'rzp_test_Yn82FeG4kWvrqt',
-//   key_secret: 'Z13UBT39Tzl6csIbmEyaKUs2',
-// });
+import { Cart, Product, User } from '../mongoose/models';
 
 const customerHelpers = {
-  // #if no cart, add new cart doc | if cart doc exist & (item not exist, add item | item exist, increment cart quantity)
-  addToCart: async (userId: string, prodId: string) => {
+  // #if no cart, add new cart doc | if cart doc exist & (product not exist, add product | product exist, increment cart quantity)
+  addToCart: async (
+    userId: string,
+    prodId: string,
+    item: {
+      color: { name: string; hex: string };
+      size: string;
+    },
+  ) => {
     const prodObj = {
-      item: new Types.ObjectId(prodId),
+      product_id: new Types.ObjectId(prodId),
       quantity: 1,
+      color: item.color,
+      size: item.size,
     };
     try {
       // Find the product
+      const user = await User.findById(userId);
+      if (!user) return Promise.reject({ status: 404, data: { message: 'user not found' } });
       const product = await Product.findById(prodId);
-      if (!product) return Promise.reject({ message: 'Product not found' });
+      if (!product) return Promise.reject({ status: 404, data: { message: 'product not found' } });
       // Find the cart for the user
       let cart = await Cart.findOne({ user_id: userId });
       // If no cart exists, create a new one
       if (!cart) {
-        cart = new Cart({ user_id: userId, products: [prodObj] });
+        cart = new Cart({ user_id: userId, items: [prodObj] });
       } else {
         // Add the product to the cart
-        const prodIndex = cart.products.findIndex((prod) => prod.item.toString() === prodId);
-        if (prodIndex > -1) {
-          cart.products[prodIndex].quantity += 1;
+        const itemIndex = cart.items.findIndex(
+          (item) =>
+            item.product_id.toString() === prodId &&
+            item.color.hex === prodObj.color.hex &&
+            item.size === prodObj.size,
+        );
+        if (itemIndex > -1) {
+          cart.items[itemIndex].quantity += 1;
+          cart.items[itemIndex].color.name = prodObj.color.name;
         } else {
-          cart.products.push(prodObj);
+          cart.items.push(prodObj);
         }
       }
       await cart.save();
-      return Promise.resolve(cart);
+      return Promise.resolve({
+        status: 200,
+        data: { message: 'successfully added product to cart', cart },
+      });
     } catch (error) {
-      return Promise.reject({ message: error });
+      return Promise.reject({ status: 500, data: error });
     }
   },
-  getCartProducts: async (userId: string) => {
+  getCartItems: async (userId: string) => {
     try {
+      const user = await User.findById(userId);
+      if (!user) return Promise.reject({ status: 404, data: { message: 'user not found' } });
       const userCart = await Cart.findOne({ user_id: userId });
-      if (!userCart) return Promise.reject({ message: 'Cart is empty' });
-      const cartProducts = await Cart.aggregate([
+      if (!userCart)
+        return Promise.resolve({ status: 200, data: { items: null, message: 'cart is empty' } });
+      const cart = await Cart.aggregate([
         { $match: { user_id: new Types.ObjectId(userId) } },
-        { $unwind: '$products' },
+        { $unwind: '$items' },
         {
           $project: {
             user_id: '$user_id',
-            product_id: '$products.item',
-            quantity: '$products.quantity',
+            item_id: '$items._id',
+            product_id: '$items.product_id',
+            quantity: '$items.quantity',
+            color: '$items.color',
+            size: '$items.size',
           },
         },
         {
@@ -58,132 +79,196 @@ const customerHelpers = {
             from: 'products',
             localField: 'product_id',
             foreignField: '_id',
-            as: 'products',
+            as: 'items',
           },
         },
-        { $addFields: { products: { quantity: '$quantity' } } },
+        {
+          $addFields: {
+            image: {
+              $arrayElemAt: [
+                {
+                  $arrayElemAt: ['$items.images', 0],
+                },
+                0,
+              ],
+            },
+          },
+        },
+        {
+          $unset: ['color._id', 'items.colors', 'items.sizes', 'items.images', 'items._id'],
+        },
+        {
+          $addFields: {
+            items: {
+              _id: '$item_id',
+              product_id: '$product_id',
+              color: '$color',
+              size: '$size',
+              image: '$image',
+              quantity: '$quantity',
+            },
+          },
+        },
         {
           $group: {
             _id: '$_id',
-            user_id: { $first: '$user_id' },
-            products: { $push: { $arrayElemAt: ['$products', 0] } },
+            user_id: {
+              $first: '$user_id',
+            },
+            items: {
+              $push: {
+                $arrayElemAt: ['$items', 0],
+              },
+            },
           },
         },
       ]);
-      // return Promise.resolve(cartProducts[0]);
-      return Promise.resolve(cartProducts[0].products);
+      return Promise.resolve({ status: 200, data: { items: cart[0].items } });
     } catch (error) {
-      return Promise.reject({ message: error });
+      return Promise.reject({ status: 500, data: error });
+    }
+  },
+  removeFromCart: async (userId: ParsedQs[string], cartItemId: ParsedQs[string]) => {
+    try {
+      const userCart = await Cart.findOne({ user_id: userId });
+      if (!userCart) return Promise.reject({ status: 404, data: { message: 'cart is empty' } });
+      const itemIndex = userCart.items.findIndex((item) => item._id?.toString() === cartItemId);
+      if (itemIndex <= -1)
+        return Promise.reject({ status: 404, data: { message: 'product not found in cart' } });
+      const cartItemsLength = userCart.items.length;
+      if (cartItemsLength > 1) {
+        await Cart.updateOne({ user_id: userId }, { $pull: { items: { _id: cartItemId } } });
+        return Promise.resolve({ status: 204 });
+      } else {
+        await Cart.findOneAndDelete({ user_id: userId });
+        return Promise.resolve({ status: 204 });
+      }
+    } catch (error) {
+      return Promise.reject({ status: 500, data: error });
     }
   },
   getCartCount: async (userId: string) => {
     try {
       const cart = await Cart.findOne({ user_id: userId });
-      if (!cart) return Promise.reject({ message: 'Cart not found' });
+      if (!cart)
+        return Promise.resolve({
+          status: 200,
+          data: {
+            count: 0,
+          },
+        });
       return Promise.resolve({
-        _id: cart._id,
-        user_id: userId,
-        cartCount: cart.products.length,
+        status: 200,
+        data: {
+          count: cart.items.length,
+        },
       });
     } catch (error) {
-      return Promise.reject(error);
-    }
-  },
-  removeFromCart: async (userId: ParsedQs[string], prodId: ParsedQs[string]) => {
-    try {
-      const product = await Product.findById(prodId);
-      if (!product) return Promise.reject({ message: 'Product not exist' });
-      const userCart = await Cart.findOne({ user_id: userId });
-      if (!userCart) return Promise.reject({ message: 'Cart is empty' });
-      const prodIndex = userCart.products.findIndex((prod) => prod.item.toString() === prodId);
-      if (prodIndex <= -1) return Promise.reject({ message: 'Product not found in cart' });
-      const productsLength = userCart.products.length;
-      if (productsLength > 1) {
-        await Cart.updateOne({ user_id: userId }, { $pull: { products: { item: prodId } } });
-        const updatedUserCart = await Cart.findOne({ user_id: userId });
-        return Promise.resolve(updatedUserCart);
-      } else {
-        await Cart.findOneAndDelete({ user_id: userId });
-        return Promise.resolve({ message: 'Last product deleted. Cart is empty now' });
-      }
-    } catch (error) {
-      return Promise.reject();
-    }
-  },
-  changeCartItemQuantity: async (
-    userId: ParsedQs[string],
-    prodId: ParsedQs[string],
-    count: number,
-  ) => {
-    try {
-      const userCart = await Cart.findOne({ user_id: userId });
-      if (!userCart) return Promise.reject({ message: 'Cart is empty' });
-      const prodIndex = userCart.products.findIndex((prod) => prod.item.toString() === prodId);
-      if (prodIndex <= -1) return Promise.reject({ message: 'Product not found in cart' });
-      const productsLength = userCart.products.length;
-      const prodQuantity = userCart.products[prodIndex].quantity;
-      if (productsLength < 2 && prodQuantity < 2 && count < 0) {
-        await Cart.findOneAndDelete({ user_id: userId });
-        return Promise.resolve({ message: 'Last product deleted. Cart is empty now' });
-      }
-      if (prodQuantity < 2 && count < 0) {
-        await Cart.updateOne({ user_id: userId }, { $pull: { products: { item: prodId } } });
-        const updatedUserCart = await Cart.findOne({ user_id: userId });
-        return Promise.resolve(updatedUserCart);
-      }
-      await Cart.updateOne(
-        { user_id: userId, 'products.item': prodId },
-        {
-          $inc: { 'products.$.quantity': count },
-        },
-      );
-      const updatedUserCart = await Cart.findOne({ user_id: userId });
-      return Promise.resolve(updatedUserCart);
-    } catch (error) {
-      return Promise.reject({ message: error });
+      return Promise.reject({ status: 500, data: error });
     }
   },
   getCartTotalAmount: async (userId: string) => {
     try {
+      const cart = await Cart.findOne({ user_id: userId });
+      if (!cart) return Promise.resolve({ status: 200, data: { total_amount: 0, unit: 'rupees' } });
       const totalAmount = await Cart.aggregate([
         { $match: { user_id: new Types.ObjectId(userId) } },
-        { $unwind: '$products' },
+        {
+          $unwind: '$items',
+        },
         {
           $project: {
-            // #item means 'productId'
             user_id: '$user_id',
-            item: '$products.item',
-            quantity: '$products.quantity',
+            product_id: '$items.product_id',
+            quantity: '$items.quantity',
           },
         },
         {
           $lookup: {
             from: 'products',
-            localField: 'item',
+            localField: 'product_id',
             foreignField: '_id',
-            as: 'product',
+            as: 'items',
           },
         },
         {
           $project: {
             user_id: 1,
-            item: 1,
+            product_id: 1,
             quantity: 1,
-            product: { $arrayElemAt: ['$product', 0] },
+            item: {
+              $arrayElemAt: ['$items', 0],
+            },
           },
         },
         {
           $group: {
             _id: '$_id',
-            user_id: { $first: '$user_id' },
-            total_amount: { $sum: { $multiply: ['$quantity', { $toInt: '$product.price' }] } },
+            // user_id: {
+            //   $first: '$user_id',
+            // },
+            total_amount: {
+              $sum: {
+                $multiply: [
+                  '$quantity',
+                  {
+                    $toDouble: '$item.price',
+                  },
+                ],
+              },
+            },
           },
         },
-        { $addFields: { unit: 'rupees' } },
+        {
+          $unset: ['_id'],
+        },
+        {
+          $addFields: {
+            unit: 'rupees',
+          },
+        },
       ]);
-      return Promise.resolve(totalAmount[0]);
+      return Promise.resolve({ status: 200, data: totalAmount[0] });
     } catch (error) {
-      return Promise.reject({ message: error });
+      return Promise.reject({ status: 500, data: error });
+    }
+  },
+  changeCartItemQuantity: async (
+    userId: ParsedQs[string],
+    cartItemId: ParsedQs[string],
+    count: number,
+  ) => {
+    try {
+      const userCart = await Cart.findOne({ user_id: userId });
+      if (!userCart) return Promise.reject({ status: 404, data: { message: 'cart is empty' } });
+      const itemIndex = userCart.items.findIndex((item) => item._id?.toString() === cartItemId);
+      if (itemIndex <= -1)
+        return Promise.reject({ status: 404, data: { message: 'product not found in cart' } });
+      const cartItemsLength = userCart.items.length;
+      const cartItemQuantity = userCart.items[itemIndex].quantity;
+      if (cartItemsLength < 2 && cartItemQuantity < 2 && count < 0) {
+        await Cart.findOneAndDelete({ user_id: userId });
+        return Promise.resolve({
+          status: 200,
+          data: { message: 'last item in cart deleted. cart is now empty' },
+        });
+      }
+      if (cartItemQuantity < 2 && count < 0) {
+        await Cart.updateOne({ user_id: userId }, { $pull: { items: { _id: cartItemId } } });
+        return Promise.resolve({
+          status: 200,
+          data: { message: 'cart item quantity decremented' },
+        });
+      }
+      await Cart.updateOne(
+        { user_id: userId, 'items._id': cartItemId },
+        {
+          $inc: { 'items.$.quantity': count },
+        },
+      );
+      return Promise.resolve({ status: 200, data: { message: 'cart item quantity incremented' } });
+    } catch (error) {
+      return Promise.reject({ status: 500, data: { message: error } });
     }
   },
   // placeOrder: (userId: any, orderData: any, products: any, totalAmount: any) => {
