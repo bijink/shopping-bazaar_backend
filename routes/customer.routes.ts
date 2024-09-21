@@ -43,6 +43,17 @@ router.delete('/remove-from-cart', (request, response) => {
       response.status(err.status).send(err.data);
     });
 });
+router.delete('/remove-cart/:userId', (request, response) => {
+  const { userId } = request.params;
+  customerHelpers
+    .removeCart(userId)
+    .then((res) => {
+      response.sendStatus(res.status);
+    })
+    .catch((err) => {
+      response.status(err.status).send(err.data);
+    });
+});
 router.get('/get-cart-count/:userId', (request, response) => {
   const { userId } = request.params;
   customerHelpers

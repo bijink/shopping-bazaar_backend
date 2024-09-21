@@ -147,6 +147,17 @@ const customerHelpers = {
       return Promise.reject({ status: 500, data: error });
     }
   },
+  removeCart: async (userId: string) => {
+    try {
+      const user = await User.findById(userId);
+      if (!user)
+        return Promise.reject({ status: 404, data: { message: 'user cart is not found' } });
+      await Cart.findOneAndDelete({ user_id: userId });
+      return Promise.resolve({ status: 204 });
+    } catch (error) {
+      return Promise.reject({ status: 500, data: error });
+    }
+  },
   getCartCount: async (userId: string) => {
     try {
       const cart = await Cart.findOne({ user_id: userId });
@@ -204,15 +215,12 @@ const customerHelpers = {
         {
           $group: {
             _id: '$_id',
-            // user_id: {
-            //   $first: '$user_id',
-            // },
             total_amount: {
               $sum: {
                 $multiply: [
                   '$quantity',
                   {
-                    $toDouble: '$item.price',
+                    $toInt: '$item.price',
                   },
                 ],
               },
