@@ -105,7 +105,7 @@ router.post('/generate-rzp-order/:userId', async (request, response) => {
       response.status(err.status).send(err.data);
     });
 });
-router.post('/verify-payment', async (request, response) => {
+router.post('/verify-payment', (request, response) => {
   customerHelpers
     .verifyPayment(request.body)
     .then((res) => {
@@ -129,7 +129,7 @@ router.post('/place-order/:userId', async (request, response) => {
       response.status(err.status).send(err.data);
     });
 });
-router.patch('/update-order/:orderId', async (request, response) => {
+router.patch('/update-order/:orderId', (request, response) => {
   const { orderId } = request.params;
   customerHelpers
     .updateOrder(orderId, request.body)
@@ -140,7 +140,7 @@ router.patch('/update-order/:orderId', async (request, response) => {
       response.status(err.status).send(err.data);
     });
 });
-router.delete('/delete-order/:orderId', async (request, response) => {
+router.delete('/delete-order/:orderId', (request, response) => {
   const { orderId } = request.params;
   customerHelpers
     .deleteOrder(orderId)
@@ -151,13 +151,40 @@ router.delete('/delete-order/:orderId', async (request, response) => {
       response.status(err.status).send(err.data);
     });
 });
-// router.get('/orders', verifyLogin, async (req, res) => {
-//   const user = req.session.user!;
-//   const cartCount = user ? await customerHelpers.getCartCount(user._id) : null;
-//   customerHelpers.getOrders(user._id).then((response) => {
-//     res.render('user/orders', { user, orders: response, cartCount });
-//   });
+router.get('/get-orders/:userId', (request, response) => {
+  const { userId } = request.params;
+  customerHelpers
+    .getOrders(userId)
+    .then((res) => {
+      response.status(res.status).send(res.data);
+    })
+    .catch((err) => {
+      response.status(err.status).send(err.data);
+    });
+});
+router.patch('/cancel-order/:orderId', (request, response) => {
+  const { orderId } = request.params;
+  customerHelpers
+    .updateOrder(orderId, { orderStatus: 'cancelled', deliveryStatus: 'cancelled' })
+    .then((res) => {
+      response.status(res.status).send({ message: 'order cancelled' });
+    })
+    .catch((err) => {
+      response.status(err.status).send(err.data);
+    });
+});
+// router.get('/get-order-products/:orderId', (request, response) => {
+//   const { orderId } = request.params;
+//   customerHelpers
+//     .getOrderProducts(orderId)
+//     .then((res) => {
+//       response.status(res.status).send(res.data);
+//     })
+//     .catch((err) => {
+//       response.status(err.status).send(err.data);
+//     });
 // });
+
 // router.get('/view-order-products/:orderId', verifyLogin, async (req, res) => {
 //   const user = req.session.user;
 //   const cartCount = user ? await customerHelpers.getCartCount(user._id) : null;

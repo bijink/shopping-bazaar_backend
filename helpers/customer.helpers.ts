@@ -341,7 +341,6 @@ const customerHelpers = {
       mobile: string;
       paymentMethod: string;
       paymentStatus: string;
-      deliveryStatus: string;
     },
     totalAmount: number,
   ) => {
@@ -360,8 +359,9 @@ const customerHelpers = {
         orderedItems: userCart.items,
         totalAmount,
         paymentMethod: orderData.paymentMethod,
+        orderStatus: 'placed',
         paymentStatus: orderData.paymentStatus,
-        deliveryStatus: orderData.deliveryStatus,
+        deliveryStatus: 'pending',
       };
       const order = new Order(orderObj);
       await order.save();
@@ -387,6 +387,7 @@ const customerHelpers = {
       landmark?: string;
       mobile?: string;
       paymentMethod?: string;
+      orderStatus?: string;
       paymentStatus?: string;
       deliveryStatus?: string;
     },
@@ -426,18 +427,211 @@ const customerHelpers = {
       return Promise.reject({ status: 500, data: error });
     }
   },
-  // getOrders: (userId: any) => {
-  //   return new Promise(async (resolve) => {
-  //     db.get()
-  //       .collection(collections.ORDER_COLLECTION)
-  //       .find({ userId: new ObjectId(userId) })
-  //       .sort({ date: -1 })
-  //       .toArray()
-  //       .then((res: any) => {
-  //         resolve(res);
-  //       });
-  //   });
+  getOrders: async (userId: string) => {
+    try {
+      const orders = await Order.find({ user_id: userId }).sort({ date: -1 });
+      if (!orders.length)
+        return Promise.reject({ status: 404, data: { message: 'order list is empty' } });
+      const orddersWithProductDetails = await Promise.all(
+        orders.map(async (order) => {
+          return await Order.aggregate([
+            {
+              $match: {
+                _id: new Types.ObjectId(order._id),
+              },
+            },
+            {
+              $unwind: '$orderedItems',
+            },
+            {
+              $project: {
+                date: '$date',
+                user_id: '$user_id',
+                deliveryDetails: '$deliveryDetails',
+                product_id: '$orderedItems.product_id',
+                quantity: '$orderedItems.quantity',
+                color: '$orderedItems.color',
+                size: '$orderedItems.size',
+                item_id: '$orderedItems._id',
+                totalAmount: '$totalAmount',
+                paymentMethod: '$paymentMethod',
+                orderStatus: '$orderStatus',
+                paymentStatus: '$paymentStatus',
+                deliveryStatus: '$deliveryStatus',
+              },
+            },
+            {
+              $lookup: {
+                from: 'products',
+                localField: 'product_id',
+                foreignField: '_id',
+                as: 'items',
+              },
+            },
+            {
+              $addFields: {
+                image: {
+                  $arrayElemAt: [
+                    {
+                      $arrayElemAt: ['$items.images', 0],
+                    },
+                    0,
+                  ],
+                },
+              },
+            },
+            {
+              $unset: [
+                'color._id',
+                'items.colors',
+                'items.sizes',
+                'items.images',
+                'items._id',
+                'items.category',
+                'items.highlights',
+                'items.description',
+                'items.details',
+                'items.suitableFor',
+              ],
+            },
+            {
+              $addFields: {
+                items: {
+                  _id: '$item_id',
+                  product_id: '$product_id',
+                  color: '$color',
+                  size: '$size',
+                  image: '$image',
+                  quantity: '$quantity',
+                },
+              },
+            },
+            {
+              $group: {
+                _id: '$_id',
+                date: {
+                  $first: '$date',
+                },
+                user_id: {
+                  $first: '$user_id',
+                },
+                deliveryDetails: {
+                  $first: '$deliveryDetails',
+                },
+                orderedItems: {
+                  $push: {
+                    $arrayElemAt: ['$items', 0],
+                  },
+                },
+                totalAmount: {
+                  $first: '$totalAmount',
+                },
+                paymentMethod: {
+                  $first: '$paymentMethod',
+                },
+                orderStatus: {
+                  $first: '$orderStatus',
+                },
+                paymentStatus: {
+                  $first: '$paymentStatus',
+                },
+                deliveryStatus: {
+                  $first: '$deliveryStatus',
+                },
+              },
+            },
+          ]).then((res) => res[0]);
+        }),
+      );
+      return Promise.resolve({
+        status: 200,
+        data: orddersWithProductDetails,
+      });
+    } catch (error) {
+      return Promise.reject({ status: 500, data: error });
+    }
+  },
+  // getOrderProducts: async (orderId: string) => {
+  //   try {
+  //     const userOrder = await Order.findOne({ _id: orderId });
+  //     if (!userOrder) return Promise.reject({ status: 200, data: { message: 'order not found' } });
+  //     const order = await Order.aggregate([
+  //       {
+  //         $match: {
+  //           _id: new Types.ObjectId(orderId),
+  //         },
+  //       },
+  //       {
+  //         $unwind: '$orderedItems',
+  //       },
+  //       {
+  //         $project: {
+  //           user_id: '$user_id',
+  //           product_id: '$orderedItems.product_id',
+  //           quantity: '$orderedItems.quantity',
+  //           color: '$orderedItems.color',
+  //           size: '$orderedItems.size',
+  //           item_id: '$orderedItems._id',
+  //         },
+  //       },
+  //       {
+  //         $lookup: {
+  //           from: 'products',
+  //           localField: 'product_id',
+  //           foreignField: '_id',
+  //           as: 'items',
+  //         },
+  //       },
+  //       {
+  //         $addFields: {
+  //           image: {
+  //             $arrayElemAt: [
+  //               {
+  //                 $arrayElemAt: ['$items.images', 0],
+  //               },
+  //               0,
+  //             ],
+  //           },
+  //         },
+  //       },
+  //       {
+  //         $unset: ['color._id', 'items.colors', 'items.sizes', 'items.images', 'items._id'],
+  //       },
+  //       {
+  //         $addFields: {
+  //           items: {
+  //             _id: '$item_id',
+  //             product_id: '$product_id',
+  //             color: '$color',
+  //             size: '$size',
+  //             image: '$image',
+  //             quantity: '$quantity',
+  //           },
+  //         },
+  //       },
+  //       {
+  //         $group: {
+  //           _id: '$_id',
+  //           user_id: {
+  //             $first: '$user_id',
+  //           },
+  //           orderedItems: {
+  //             $push: {
+  //               $arrayElemAt: ['$items', 0],
+  //             },
+  //           },
+  //         },
+  //       },
+  //     ]);
+  //     return Promise.resolve({
+  //       status: 200,
+  //       data: order[0].orderedItems,
+  //     });
+  //   } catch (error) {
+  //     return Promise.reject({ status: 500, data: error });
+  //   }
   // },
+
   // getOrderProducts: (orderId: any) => {
   //   return new Promise(async (resolve) => {
   //     const orderProducts = await db
