@@ -145,7 +145,14 @@ export const productAddSchema = {
     isNumeric: {
       errorMessage: 'price must be a valid number',
     },
-    toFloat: true,
+    custom: {
+      options: (value: number) => {
+        if (value <= 0) {
+          throw new Error('Price must be greater than zero');
+        }
+        return true;
+      },
+    },
   },
   colors: {
     notEmpty: {

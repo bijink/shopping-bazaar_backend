@@ -88,34 +88,69 @@ router.patch('/change-cart-item-quantity', (request, response) => {
       response.status(err.status).send(err.data);
     });
 });
-// router.post('/place-order', async (req, res) => {
-//   const user = req.session.user!;
-//   const products = await customerHelpers.getCartProductList(user._id);
-//   const totalAmount = await customerHelpers.getCartTotalAmount(user._id);
-//   if (totalAmount) {
-//     customerHelpers.placeOrder(user._id, req.body, products, totalAmount).then((response) => {
-//       if (req.body.paymentMethod == 'cod') {
-//         res.json({ status: 'cod-success' });
-//       } else {
-//         customerHelpers.generateRazorpay(response.orderId, response.amount).then((order) => {
-//           const userObj = {
-//             name: user.name,
-//             email: user.email,
-//             contact: req.body.mobile,
-//           };
-//           res.json({ status: 'online-pending', user: userObj, order });
-//         });
-//       }
-//     });
-//   } else {
-//     res.json({ status: 'redirect' });
-//   }
-// });
-// router.get('/order-success', async (req, res) => {
-//   const user = req.session.user;
-//   const cartCount = user ? await customerHelpers.getCartCount(user._id) : null;
-//   res.render('user/order-success', { cartCount });
-// });
+router.post('/generate-rzp-order/:userId', async (request, response) => {
+  const { userId } = request.params;
+  const totalAmount = await customerHelpers
+    .getCartTotalAmount(userId)
+    .then((res) => res.data.total_amount);
+  customerHelpers
+    .generateRazorpay(userId, totalAmount)
+    .then((res) => {
+      response.status(res.status).send({
+        message: 'order placed (POL)',
+        paymentOrder: res.data,
+      });
+    })
+    .catch((err) => {
+      response.status(err.status).send(err.data);
+    });
+});
+router.post('/verify-payment', async (request, response) => {
+  customerHelpers
+    .verifyPayment(request.body)
+    .then((res) => {
+      response.status(res.status).send(res.data);
+    })
+    .catch((err) => {
+      response.status(err.status).send(err.data);
+    });
+});
+router.post('/place-order/:userId', async (request, response) => {
+  const { userId } = request.params;
+  const totalAmount = await customerHelpers
+    .getCartTotalAmount(userId)
+    .then((res) => res.data.total_amount);
+  customerHelpers
+    .placeOrder(userId, request.body, totalAmount)
+    .then((res) => {
+      response.status(res.status).send({ message: 'order placed' });
+    })
+    .catch((err) => {
+      response.status(err.status).send(err.data);
+    });
+});
+router.patch('/update-order/:orderId', async (request, response) => {
+  const { orderId } = request.params;
+  customerHelpers
+    .updateOrder(orderId, request.body)
+    .then((res) => {
+      response.status(res.status).send(res.data);
+    })
+    .catch((err) => {
+      response.status(err.status).send(err.data);
+    });
+});
+router.delete('/delete-order/:orderId', async (request, response) => {
+  const { orderId } = request.params;
+  customerHelpers
+    .deleteOrder(orderId)
+    .then((res) => {
+      response.status(res.status).send(res.data);
+    })
+    .catch((err) => {
+      response.status(err.status).send(err.data);
+    });
+});
 // router.get('/orders', verifyLogin, async (req, res) => {
 //   const user = req.session.user!;
 //   const cartCount = user ? await customerHelpers.getCartCount(user._id) : null;
@@ -129,21 +164,6 @@ router.patch('/change-cart-item-quantity', (request, response) => {
 
 //   const orderProducts = await customerHelpers.getOrderProducts(req.params.orderId);
 //   res.render('user/view-order-products', { user, orderProducts, cartCount });
-// });
-// router.post('/verify-payment', async (req, res) => {
-//   // console.log("VERIFY:: ", req.body);
-//   if (req.body) {
-//     customerHelpers
-//       .verifyPayment(req.body)
-//       .then(() => {
-//         customerHelpers.updatePaymentStatus(req.body['order[receipt]']).then(() => {
-//           res.json({ status: true });
-//         });
-//       })
-//       .catch(() => {
-//         res.json({ status: false, errMsg: 'Payment failed' });
-//       });
-//   }
 // });
 // router.post('/pay-pending-orders', (req, res) => {
 //   const user = req.session.user!;

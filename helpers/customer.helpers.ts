@@ -1,7 +1,8 @@
-// import Razorpay from 'razorpay';
+import { createHmac } from 'crypto';
 import { Types } from 'mongoose';
 import { ParsedQs } from 'qs';
-import { Cart, Product, User } from '../mongoose/models';
+import Razorpay from 'razorpay';
+import { Cart, Order, Product, User } from '../mongoose/models';
 
 const customerHelpers = {
   // #if no cart, add new cart doc | if cart doc exist & (product not exist, add product | product exist, increment cart quantity)
@@ -279,34 +280,152 @@ const customerHelpers = {
       return Promise.reject({ status: 500, data: { message: error } });
     }
   },
-  // placeOrder: (userId: any, orderData: any, products: any, totalAmount: any) => {
-  //   return new Promise<any>((resolve) => {
-  //     // console.log(userId, orderData, products, totalAmount);
-  //     const status = orderData.paymentMethod === 'cod' ? 'placed' : 'pending';
-  //     const orderObj = {
-  //       userId: new ObjectId(userId),
-  //       deliveryDetails: {
-  //         address: orderData.address,
-  //         pincode: orderData.pincode,
-  //         mobile: orderData.mobile,
-  //       },
-  //       products,
-  //       totalAmount,
-  //       paymentMethod: orderData.paymentMethod,
-  //       status,
-  //       date: new Date(),
-  //     };
-  //     db.get()
-  //       .collection(collections.ORDER_COLLECTION)
-  //       .insertOne(orderObj)
-  //       .then((response: any) => {
-  //         db.get()
-  //           .collection(collections.CART_COLLECTION)
-  //           .deleteOne({ user: new ObjectId(userId) });
-  //         resolve({ orderId: response.insertedId, amount: totalAmount });
-  //       });
-  //   });
-  // },
+  generateRazorpay: async (userId: string, amount: number) => {
+    try {
+      const instance = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID as string,
+        key_secret: process.env.RAZORPAY_SECRET as string,
+      });
+      const userCart = await Cart.findOne({ user_id: userId });
+      if (!userCart) return Promise.reject({ status: 404, data: { message: 'cart is empty' } });
+      const options = {
+        amount: amount * 100, // amount in smallest currency unit
+        currency: 'INR',
+        receipt: `receipt_order_${userCart._id}`,
+      };
+      const order = await instance.orders.create(options);
+      if (!order) return Promise.reject({ status: 500, data: { message: 'some error occured' } });
+      return Promise.resolve({ status: 200, data: order });
+    } catch (error) {
+      return Promise.reject({ status: 500, data: error });
+    }
+  },
+  verifyPayment: (paymentRes: {
+    orderCreationId: string;
+    razorpayPaymentId: string;
+    razorpayOrderId: string;
+    razorpaySignature: string;
+  }) => {
+    try {
+      // getting the details back from font-end
+      const { orderCreationId, razorpayPaymentId, razorpayOrderId, razorpaySignature } = paymentRes;
+      // Creating our own digest
+      const secret = process.env.RAZORPAY_SECRET as string;
+      // The format should be like this:
+      // digest = hmac_sha256(orderCreationId + "|" + razorpayPaymentId, secret);
+      const shasum = createHmac('sha256', secret);
+      shasum.update(`${orderCreationId}|${razorpayPaymentId}`);
+      const digest = shasum.digest('hex');
+      // comaparing our digest with the actual signature
+      if (digest !== razorpaySignature)
+        return Promise.reject({ status: 400, data: { message: 'Transaction not legit!' } });
+      // THE PAYMENT IS LEGIT & VERIFIED
+      return Promise.resolve({
+        status: 200,
+        data: {
+          message: 'success',
+          orderId: razorpayOrderId,
+          paymentId: razorpayPaymentId,
+        },
+      });
+    } catch (error) {
+      return Promise.reject({ status: 500, data: error });
+    }
+  },
+  placeOrder: async (
+    userId: string,
+    orderData: {
+      address: string;
+      pincode: string;
+      landmark: string;
+      mobile: string;
+      paymentMethod: string;
+      paymentStatus: string;
+      deliveryStatus: string;
+    },
+    totalAmount: number,
+  ) => {
+    try {
+      const userCart = await Cart.findOne({ user_id: userId });
+      if (!userCart) return Promise.reject({ status: 404, data: { message: 'cart is empty' } });
+      const orderObj = {
+        date: new Date(),
+        user_id: userId,
+        deliveryDetails: {
+          address: orderData.address,
+          pincode: orderData.pincode,
+          landmark: orderData.landmark,
+          mobile: orderData.mobile,
+        },
+        orderedItems: userCart.items,
+        totalAmount,
+        paymentMethod: orderData.paymentMethod,
+        paymentStatus: orderData.paymentStatus,
+        deliveryStatus: orderData.deliveryStatus,
+      };
+      const order = new Order(orderObj);
+      await order.save();
+      const insertedOrder = await Order.findById(order._id).exec();
+      if (!insertedOrder)
+        return Promise.reject({
+          status: 500,
+          data: {
+            message: 'something went wrong, please try again later',
+          },
+        });
+      await Cart.findOneAndDelete({ user_id: userId });
+      return Promise.resolve({ status: 201, data: insertedOrder });
+    } catch (error) {
+      return Promise.reject({ status: 500, data: error });
+    }
+  },
+  updateOrder: async (
+    orderId: string,
+    detailsToUpdate: {
+      address?: string;
+      pincode?: string;
+      landmark?: string;
+      mobile?: string;
+      paymentMethod?: string;
+      paymentStatus?: string;
+      deliveryStatus?: string;
+    },
+  ) => {
+    try {
+      const order = await Order.findOne({ _id: orderId });
+      if (!order) return Promise.reject({ status: 404, data: { message: 'order is empty' } });
+      await Order.updateOne({ _id: orderId }, detailsToUpdate);
+      const updatedOrder = await Order.findById(orderId).exec();
+      if (!updatedOrder)
+        return Promise.reject({
+          status: 500,
+          data: {
+            message: 'something went wrong, please try again later',
+          },
+        });
+      return Promise.resolve({ status: 200, data: { message: 'order updated' } });
+    } catch (error) {
+      return Promise.reject({ status: 500, data: error });
+    }
+  },
+  deleteOrder: async (orderId: string) => {
+    try {
+      const order = await Order.findOne({ _id: orderId });
+      if (!order) return Promise.reject({ status: 404, data: { message: 'order not found' } });
+      const deletedOrder = await Order.findByIdAndDelete(orderId);
+      if (!deletedOrder)
+        return Promise.reject({
+          status: 500,
+          data: { message: 'something went wrong, please try again later' },
+        });
+      return Promise.resolve({
+        status: 200,
+        data: { message: 'order deleted successfully' },
+      });
+    } catch (error) {
+      return Promise.reject({ status: 500, data: error });
+    }
+  },
   // getOrders: (userId: any) => {
   //   return new Promise(async (resolve) => {
   //     db.get()
@@ -357,51 +476,6 @@ const customerHelpers = {
   //       .toArray();
   //     // console.log(orderProducts);
   //     resolve(orderProducts);
-  //   });
-  // },
-  // generateRazorpay: (orderId: any, amount: any) => {
-  //   return new Promise((resolve, reject) => {
-  //     // console.log(orderId.toString(), amount);
-  //     instance.orders.create(
-  //       {
-  //         amount: amount * 100,
-  //         currency: 'INR',
-  //         receipt: orderId.toString(),
-  //         // notes: {
-  //         //   key1: "value3",
-  //         //   key2: "value2",
-  //         // },
-  //       },
-  //       (err, order) => {
-  //         if (!err) {
-  //           // console.log("generateRazorpay_RES", order);
-  //           resolve(order);
-  //         } else {
-  //           // console.log("generateRazorpay_ERR", err);
-  //           reject();
-  //         }
-  //       },
-  //     );
-  //   });
-  // },
-  // verifyPayment: (orderDetails: any) => {
-  //   return new Promise<void>((resolve, reject) => {
-  //     const { createHmac } = require('node:crypto');
-  //     const secret = 'Z13UBT39Tzl6csIbmEyaKUs2';
-  //     const hash = createHmac('sha256', secret)
-  //       .update(
-  //         orderDetails['payment[razorpay_order_id]'] +
-  //           '|' +
-  //           orderDetails['payment[razorpay_payment_id]'],
-  //       )
-  //       .digest('hex');
-  //     // console.log(hash);
-  //     // generated_signature = hmac_sha256(order_id + "|" + razorpay_payment_id, secret);
-  //     if (hash == orderDetails['payment[razorpay_signature]']) {
-  //       resolve();
-  //     } else {
-  //       reject();
-  //     }
   //   });
   // },
   // updatePaymentStatus: (orderId: any) => {
