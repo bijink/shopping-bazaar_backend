@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { checkSchema } from 'express-validator';
-import { customerHelpers } from '../helpers';
+import { customerHelpers, orderHelpers } from '../helpers';
 import { validateRequest } from '../utils/middlewares';
 import { cartAddSchema } from '../utils/validationSchemas';
 
@@ -93,7 +93,7 @@ router.post('/generate-rzp-order/:userId', async (request, response) => {
   const totalAmount = await customerHelpers
     .getCartTotalAmount(userId)
     .then((res) => res.data.total_amount);
-  customerHelpers
+  orderHelpers
     .generateRazorpay(userId, totalAmount)
     .then((res) => {
       response.status(res.status).send({
@@ -106,7 +106,7 @@ router.post('/generate-rzp-order/:userId', async (request, response) => {
     });
 });
 router.post('/verify-payment', (request, response) => {
-  customerHelpers
+  orderHelpers
     .verifyPayment(request.body)
     .then((res) => {
       response.status(res.status).send(res.data);
@@ -120,7 +120,7 @@ router.post('/place-order/:userId', async (request, response) => {
   const totalAmount = await customerHelpers
     .getCartTotalAmount(userId)
     .then((res) => res.data.total_amount);
-  customerHelpers
+  orderHelpers
     .placeOrder(userId, request.body, totalAmount)
     .then((res) => {
       response.status(res.status).send({ message: 'order placed' });
@@ -131,7 +131,7 @@ router.post('/place-order/:userId', async (request, response) => {
 });
 router.patch('/update-order/:orderId', (request, response) => {
   const { orderId } = request.params;
-  customerHelpers
+  orderHelpers
     .updateOrder(orderId, request.body)
     .then((res) => {
       response.status(res.status).send(res.data);
@@ -140,21 +140,21 @@ router.patch('/update-order/:orderId', (request, response) => {
       response.status(err.status).send(err.data);
     });
 });
-router.delete('/delete-order/:orderId', (request, response) => {
-  const { orderId } = request.params;
-  customerHelpers
-    .deleteOrder(orderId)
-    .then((res) => {
-      response.status(res.status).send(res.data);
-    })
-    .catch((err) => {
-      response.status(err.status).send(err.data);
-    });
-});
+// router.delete('/delete-order/:orderId', (request, response) => {
+//   const { orderId } = request.params;
+//   orderHelpers
+//     .deleteOrder(orderId)
+//     .then((res) => {
+//       response.status(res.status).send(res.data);
+//     })
+//     .catch((err) => {
+//       response.status(err.status).send(err.data);
+//     });
+// });
 router.get('/get-orders/:userId', (request, response) => {
   const { userId } = request.params;
-  customerHelpers
-    .getOrders(userId)
+  orderHelpers
+    .getUserOrders(userId)
     .then((res) => {
       response.status(res.status).send(res.data);
     })
@@ -164,8 +164,8 @@ router.get('/get-orders/:userId', (request, response) => {
 });
 router.patch('/cancel-order/:orderId', (request, response) => {
   const { orderId } = request.params;
-  customerHelpers
-    .updateOrder(orderId, { orderStatus: 'cancelled', deliveryStatus: 'cancelled' })
+  orderHelpers
+    .updateOrder(orderId, { orderStatus: 'cancelled' })
     .then((res) => {
       response.status(res.status).send({ message: 'order cancelled' });
     })
@@ -175,7 +175,7 @@ router.patch('/cancel-order/:orderId', (request, response) => {
 });
 // router.get('/get-order-products/:orderId', (request, response) => {
 //   const { orderId } = request.params;
-//   customerHelpers
+//   orderHelpers
 //     .getOrderProducts(orderId)
 //     .then((res) => {
 //       response.status(res.status).send(res.data);
@@ -183,23 +183,6 @@ router.patch('/cancel-order/:orderId', (request, response) => {
 //     .catch((err) => {
 //       response.status(err.status).send(err.data);
 //     });
-// });
-
-// router.get('/view-order-products/:orderId', verifyLogin, async (req, res) => {
-//   const user = req.session.user;
-//   const cartCount = user ? await customerHelpers.getCartCount(user._id) : null;
-
-//   const orderProducts = await customerHelpers.getOrderProducts(req.params.orderId);
-//   res.render('user/view-order-products', { user, orderProducts, cartCount });
-// });
-// router.post('/pay-pending-orders', (req, res) => {
-//   const user = req.session.user!;
-//   const { orderId, amount, mobile } = req.body;
-//   // console.log({ orderId, amount, mobile });
-//   customerHelpers.generateRazorpay(orderId, Number(amount)).then((order) => {
-//     const userObj = { name: user.name, email: user.email, contact: mobile };
-//     res.json({ status: 'online-pending', user: userObj, order });
-//   });
 // });
 
 export default router;

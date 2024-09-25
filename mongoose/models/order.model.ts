@@ -41,6 +41,10 @@ const orderSchema = new Schema({
   },
   deliveryDetails: {
     type: {
+      name: {
+        type: String,
+        required: true,
+      },
       address: {
         type: String,
         required: true,
@@ -69,19 +73,14 @@ const orderSchema = new Schema({
     type: String,
     required: true,
   },
-  orderStatus: {
-    type: String,
-    enum: ['placed', 'cancelled', 'delivered'],
-    required: true,
-  },
   paymentStatus: {
     type: String,
     enum: ['pending', 'success', 'returned'],
     required: true,
   },
-  deliveryStatus: {
+  orderStatus: {
     type: String,
-    enum: ['pending', 'cancelled', 'packing', 'shipping', 'success'],
+    enum: ['placed', 'on-packing', 'on-shipping', 'on-delivering', 'delivered', 'cancelled'],
     required: true,
   },
 });
