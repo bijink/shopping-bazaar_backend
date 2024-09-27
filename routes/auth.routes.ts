@@ -7,20 +7,15 @@ import { authHelpers } from '../helpers';
 import { validateRequest } from '../utils/middlewares';
 import { sendOtpSchema, userSigninSchema, userSignupSchema } from '../utils/validationSchemas';
 
-type UserTypes = {
-  _id: Types.ObjectId;
-  role: string;
-  fname: string;
-  lname: string;
-  email: string;
-};
-
 const router = Router();
 
-const signToken = (user: UserTypes) => {
+const signToken = (
+  user: { _id: Types.ObjectId; name: string; email: string; role: string },
+  expiresIn: string | number | undefined,
+) => {
   try {
     return jwt.sign(user, process.env.JWT_TOKEN_SECRET as string, {
-      expiresIn: '7d',
+      expiresIn,
     });
   } catch (error) {
     return null;
@@ -64,7 +59,13 @@ router.post(
     authHelpers
       .signup(request.body)
       .then((res) => {
-        const token = signToken(res.data.user);
+        const tokenData = {
+          _id: res.data.user._id,
+          name: `${res.data.user.fname} ${res.data.user.lname}`,
+          email: res.data.user.email,
+          role: res.data.user.role,
+        };
+        const token = signToken(tokenData, '1d');
         if (!token) {
           return response
             .status(500)
@@ -81,7 +82,13 @@ router.post('/signin', validateRequest(checkSchema(userSigninSchema)), (request,
   authHelpers
     .signin(request.body)
     .then((res) => {
-      const token = signToken(res.data.user);
+      const tokenData = {
+        _id: res.data.user._id,
+        name: `${res.data.user.fname} ${res.data.user.lname}`,
+        email: res.data.user.email,
+        role: res.data.user.role,
+      };
+      const token = signToken(tokenData, '7d');
       if (!token) {
         return response
           .status(500)

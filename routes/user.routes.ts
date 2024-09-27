@@ -4,6 +4,17 @@ import { authenticateJwtToken } from '../utils/middlewares';
 
 const router = Router();
 
+router.get('/get-user-details/:userId', authenticateJwtToken, (request, response) => {
+  const { userId } = request.params;
+  userHelpers
+    .getUserDetails(userId)
+    .then((res) => {
+      response.status(res.status).send(res.data);
+    })
+    .catch((err) => {
+      response.status(err.status).send(err.data);
+    });
+});
 router.patch('/update-details/:userId', authenticateJwtToken, (request, response) => {
   const { userId } = request.params;
   userHelpers
@@ -15,9 +26,17 @@ router.patch('/update-details/:userId', authenticateJwtToken, (request, response
       response.status(err.status).send(err.data);
     });
 });
-// router.patch('/delete/:userId', (request, response) => {
-//   const { userId } = request.params;
-// });
+router.delete('/delete/:userId', (request, response) => {
+  const { userId } = request.params;
+  userHelpers
+    .deleteUserAccount(userId)
+    .then((res) => {
+      response.status(res.status).send(res.data);
+    })
+    .catch((err) => {
+      response.status(err.status).send(err.data);
+    });
+});
 router.get('/get-product', async (request, response) => {
   const prodId = request.query.id;
   if (prodId) {

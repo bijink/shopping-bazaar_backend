@@ -129,28 +129,6 @@ router.post('/place-order/:userId', async (request, response) => {
       response.status(err.status).send(err.data);
     });
 });
-router.patch('/update-order/:orderId', (request, response) => {
-  const { orderId } = request.params;
-  orderHelpers
-    .updateOrder(orderId, request.body)
-    .then((res) => {
-      response.status(res.status).send(res.data);
-    })
-    .catch((err) => {
-      response.status(err.status).send(err.data);
-    });
-});
-// router.delete('/delete-order/:orderId', (request, response) => {
-//   const { orderId } = request.params;
-//   orderHelpers
-//     .deleteOrder(orderId)
-//     .then((res) => {
-//       response.status(res.status).send(res.data);
-//     })
-//     .catch((err) => {
-//       response.status(err.status).send(err.data);
-//     });
-// });
 router.get('/get-orders/:userId', (request, response) => {
   const { userId } = request.params;
   orderHelpers
@@ -165,7 +143,7 @@ router.get('/get-orders/:userId', (request, response) => {
 router.patch('/cancel-order/:orderId', (request, response) => {
   const { orderId } = request.params;
   orderHelpers
-    .updateOrder(orderId, { orderStatus: 'cancelled' })
+    .updateOrderStatus(orderId, { orderStatus: 'cancelled' })
     .then((res) => {
       response.status(res.status).send({ message: 'order cancelled' });
     })
@@ -173,16 +151,5 @@ router.patch('/cancel-order/:orderId', (request, response) => {
       response.status(err.status).send(err.data);
     });
 });
-// router.get('/get-order-products/:orderId', (request, response) => {
-//   const { orderId } = request.params;
-//   orderHelpers
-//     .getOrderProducts(orderId)
-//     .then((res) => {
-//       response.status(res.status).send(res.data);
-//     })
-//     .catch((err) => {
-//       response.status(err.status).send(err.data);
-//     });
-// });
 
 export default router;

@@ -19,12 +19,38 @@ const userSchema = new Schema({
     required: true,
     unique: true,
   },
+  mobile: {
+    type: String,
+  },
   password: {
     type: String,
     required: true,
   },
   image: {
     type: String,
+  },
+  address: {
+    fullname: {
+      type: String,
+    },
+    building: {
+      type: String,
+    },
+    street: {
+      type: String,
+    },
+    town: {
+      type: String,
+    },
+    state: {
+      type: String,
+    },
+    pincode: {
+      type: String,
+    },
+    landmark: {
+      type: String,
+    },
   },
 });
 

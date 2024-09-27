@@ -26,3 +26,13 @@ export interface Product {
   highlights: string[];
   images: string[];
 }
+
+export type UserAddress = {
+  fullname: string;
+  building: string;
+  street: string;
+  town: string;
+  state: string;
+  pincode: string;
+  landmark: string;
+};

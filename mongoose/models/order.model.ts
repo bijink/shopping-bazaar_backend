@@ -41,20 +41,30 @@ const orderSchema = new Schema({
   },
   deliveryDetails: {
     type: {
-      name: {
-        type: String,
-        required: true,
-      },
       address: {
-        type: String,
-        required: true,
-      },
-      pincode: {
-        type: String,
-        required: true,
-      },
-      landmark: {
-        type: String,
+        type: {
+          fullname: {
+            type: String,
+          },
+          building: {
+            type: String,
+          },
+          street: {
+            type: String,
+          },
+          town: {
+            type: String,
+          },
+          state: {
+            type: String,
+          },
+          pincode: {
+            type: String,
+          },
+          landmark: {
+            type: String,
+          },
+        },
         required: true,
       },
       mobile: {

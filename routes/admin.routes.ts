@@ -70,7 +70,7 @@ router.patch('/change-order-status/:orderId', (request, response) => {
   const { orderId } = request.params;
   const { status } = request.body;
   orderHelpers
-    .updateOrder(orderId, { orderStatus: status })
+    .updateOrderStatus(orderId, { orderStatus: status })
     .then((res) => {
       response.status(res.status).send(res.data);
     })
@@ -78,14 +78,6 @@ router.patch('/change-order-status/:orderId', (request, response) => {
       response.status(err.status).send(err.data);
     });
 });
-// router.get('/delivered-order/:orderId', verifyLogin, (req, res) => {
-//   const orderId = req.params.orderId;
-//   adminHelpers.updateOrderStatus({ orderId, status: 'delivered' }).then((response) => {
-//     if (response.status) {
-//       res.redirect('/admin/all-orders');
-//     }
-//   });
-// });
 // router.get('/all-users', verifyLogin, async (req, res) => {
 //   const admin = req.session.admin;
 //   const usersList = await adminHelpers.getUsersList();

@@ -2,6 +2,7 @@ import { createHmac } from 'crypto';
 import { Types } from 'mongoose';
 import Razorpay from 'razorpay';
 import { Cart, Order } from '../mongoose/models';
+import { UserAddress } from '../types/global.type';
 
 const orderHelpers = {
   generateRazorpay: async (userId: string, amount: number) => {
@@ -59,10 +60,7 @@ const orderHelpers = {
   placeOrder: async (
     userId: string,
     orderData: {
-      name: string;
-      address: string;
-      pincode: string;
-      landmark: string;
+      address: UserAddress;
       mobile: string;
       paymentMethod: string;
       paymentStatus: string;
@@ -76,10 +74,7 @@ const orderHelpers = {
         date: new Date(),
         user_id: userId,
         deliveryDetails: {
-          name: orderData.name,
           address: orderData.address,
-          pincode: orderData.pincode,
-          landmark: orderData.landmark,
           mobile: orderData.mobile,
         },
         orderedItems: userCart.items,
@@ -104,17 +99,10 @@ const orderHelpers = {
       return Promise.reject({ status: 500, data: error });
     }
   },
-  updateOrder: async (
+  updateOrderStatus: async (
     orderId: string,
     detailsToUpdate: {
-      name?: string;
-      address?: string;
-      pincode?: string;
-      landmark?: string;
-      mobile?: string;
-      paymentMethod?: string;
-      paymentStatus?: string;
-      orderStatus?: string;
+      orderStatus: string;
     },
   ) => {
     try {
@@ -134,24 +122,6 @@ const orderHelpers = {
       return Promise.reject({ status: 500, data: error });
     }
   },
-  // deleteOrder: async (orderId: string) => {
-  //   try {
-  //     const order = await Order.findOne({ _id: orderId });
-  //     if (!order) return Promise.reject({ status: 404, data: { message: 'order not found' } });
-  //     const deletedOrder = await Order.findByIdAndDelete(orderId);
-  //     if (!deletedOrder)
-  //       return Promise.reject({
-  //         status: 500,
-  //         data: { message: 'something went wrong, please try again later' },
-  //       });
-  //     return Promise.resolve({
-  //       status: 200,
-  //       data: { message: 'order deleted successfully' },
-  //     });
-  //   } catch (error) {
-  //     return Promise.reject({ status: 500, data: error });
-  //   }
-  // },
   getUserOrders: async (userId: string) => {
     try {
       const orders = await Order.find({ user_id: userId }).sort({ date: -1 });
