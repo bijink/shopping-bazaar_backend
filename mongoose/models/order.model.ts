@@ -90,7 +90,7 @@ const orderSchema = new Schema({
   },
   orderStatus: {
     type: String,
-    enum: ['placed', 'on-packing', 'on-shipping', 'on-delivering', 'delivered', 'cancelled'],
+    enum: ['placed', 'on-packing', 'on-shipping', 'on-delivery', 'delivered', 'cancelled'],
     required: true,
   },
 });
