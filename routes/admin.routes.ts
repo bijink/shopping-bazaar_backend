@@ -57,8 +57,9 @@ router.patch('/edit-product/:id', (request, response) => {
     });
 });
 router.get('/get-all-orders', (request, response) => {
+  const { sort } = request.query;
   orderHelpers
-    .getAllOrders()
+    .getAllOrders(sort)
     .then((res) => {
       response.status(res.status).send(res.data);
     })

@@ -1,5 +1,6 @@
 import { createHmac } from 'crypto';
 import { Types } from 'mongoose';
+import { ParsedQs } from 'qs';
 import Razorpay from 'razorpay';
 import { Cart, Order } from '../mongoose/models';
 import { UserAddress } from '../types/global.type';
@@ -122,9 +123,11 @@ const orderHelpers = {
       return Promise.reject({ status: 500, data: error });
     }
   },
-  getUserOrders: async (userId: string) => {
+  getUserOrders: async (userId: string, sortOrder: ParsedQs[string]) => {
     try {
-      const orders = await Order.find({ user_id: userId }).sort({ date: -1 });
+      const orders = await Order.find({ user_id: userId }).sort({
+        date: sortOrder === 'desc' ? 'desc' : 'asc',
+      });
       if (!orders.length)
         return Promise.reject({ status: 404, data: { message: 'order list is empty' } });
       const ordersWithProductDetails = await Promise.all(
@@ -322,9 +325,9 @@ const orderHelpers = {
   //     return Promise.reject({ status: 500, data: error });
   //   }
   // },
-  getAllOrders: async () => {
+  getAllOrders: async (sortOrder: ParsedQs[string]) => {
     try {
-      const orders = await Order.find().sort({ date: -1 });
+      const orders = await Order.find().sort({ date: sortOrder === 'desc' ? 'desc' : 'asc' });
       if (!orders.length)
         return Promise.reject({ status: 404, data: { message: 'order list is empty' } });
       const ordersWithProductDetails = await Promise.all(

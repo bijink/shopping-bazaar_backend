@@ -53,8 +53,9 @@ router.get('/get-product', async (request, response) => {
   }
 });
 router.get('/get-all-product', async (request, response) => {
+  const { sort, skip, limit } = request.query;
   productHelpers
-    .getAllProduct()
+    .getAllProduct(sort, skip, limit)
     .then((res) => {
       response.status(res.status).send(res.data);
     })

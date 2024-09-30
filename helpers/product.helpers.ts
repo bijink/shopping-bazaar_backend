@@ -13,10 +13,18 @@ const productHelpers = {
       return Promise.reject({ status: 400, data: error });
     }
   },
-  getAllProduct: async () => {
+  getAllProduct: async (
+    sortOrder: ParsedQs[string],
+    skip: ParsedQs[string],
+    limit: ParsedQs[string],
+  ) => {
     try {
-      const products = await Product.find({});
-      return Promise.resolve({ status: 200, data: products });
+      const products = await Product.find({})
+        .sort({ _id: sortOrder === 'desc' ? 'desc' : 'asc' })
+        .skip(parseInt(skip as string))
+        .limit(parseInt(limit as string));
+      const productLength = await Product.countDocuments();
+      return Promise.resolve({ status: 200, data: { products, length: productLength } });
     } catch (error) {
       return Promise.reject({ status: 500, data: error });
     }

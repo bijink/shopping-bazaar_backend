@@ -131,8 +131,9 @@ router.post('/place-order/:userId', async (request, response) => {
 });
 router.get('/get-orders/:userId', (request, response) => {
   const { userId } = request.params;
+  const { sort } = request.query;
   orderHelpers
-    .getUserOrders(userId)
+    .getUserOrders(userId, sort)
     .then((res) => {
       response.status(res.status).send(res.data);
     })
