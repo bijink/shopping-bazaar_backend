@@ -56,7 +56,7 @@ const userHelpers = {
         });
       return Promise.resolve({
         status: 200,
-        data: { message: 'User account deleted successfully' },
+        data: { message: 'User account deleted successfully', deletedUser: user },
       });
     } catch (error) {
       return Promise.reject({ status: 500, data: { error } });

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { productHelpers, userHelpers } from '../helpers';
+import { deleteFiles } from '../utils/deleteFiles';
 import { authenticateJwtToken } from '../utils/middlewares';
 
 const router = Router();
@@ -31,7 +32,23 @@ router.delete('/delete/:userId', (request, response) => {
   userHelpers
     .deleteUserAccount(userId)
     .then((res) => {
-      response.status(res.status).send(res.data);
+      deleteFiles([res.data.deletedUser.image!])
+        .then((deleteFilesRes) => {
+          response.status(res.status).send({
+            user: {
+              message: res.data.message,
+            },
+            image: deleteFilesRes,
+          });
+        })
+        .catch((deletedFilesErr) => {
+          response.status(res.status).send({
+            user: {
+              message: res.data.message,
+            },
+            images: deletedFilesErr,
+          });
+        });
     })
     .catch((err) => {
       response.status(err.status).send(err.data);

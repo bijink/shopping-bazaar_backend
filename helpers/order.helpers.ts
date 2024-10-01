@@ -128,8 +128,9 @@ const orderHelpers = {
       const orders = await Order.find({ user_id: userId }).sort({
         date: sortOrder === 'desc' ? 'desc' : 'asc',
       });
-      if (!orders.length)
-        return Promise.reject({ status: 404, data: { message: 'order list is empty' } });
+      if (!orders)
+        return Promise.reject({ status: 404, data: { message: 'order list not found' } });
+      if (!orders.length) return Promise.resolve({ status: 200, data: [] });
       const ordersWithProductDetails = await Promise.all(
         orders.map(async (order) => {
           return await Order.aggregate([
@@ -328,8 +329,9 @@ const orderHelpers = {
   getAllOrders: async (sortOrder: ParsedQs[string]) => {
     try {
       const orders = await Order.find().sort({ date: sortOrder === 'desc' ? 'desc' : 'asc' });
-      if (!orders.length)
-        return Promise.reject({ status: 404, data: { message: 'order list is empty' } });
+      if (!orders)
+        return Promise.reject({ status: 404, data: { message: 'order list not found' } });
+      if (!orders.length) return Promise.resolve({ status: 200, data: [] });
       const ordersWithProductDetails = await Promise.all(
         orders.map(async (order) => {
           return await Order.aggregate([
