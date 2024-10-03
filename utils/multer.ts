@@ -2,8 +2,7 @@ import multer from 'multer';
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const subFolderName = req.url?.slice(1).split(/[/?]/)[1] || 'default';
-    cb(null, `uploads/${subFolderName}`);
+    cb(null, process.env.UPLOAD_PATH as string);
   },
   filename: (req, file, cb) => {
     const { for: fileFor, id } = req.query;

@@ -47,7 +47,7 @@ router.post(
 // #get-image route
 router.get('/get-image/:imageName', (request, response) => {
   const { imageName } = request.params;
-  const imagePath = path.join(process.cwd(), 'uploads/image', imageName);
+  const imagePath = path.join(process.env.UPLOAD_PATH as string, imageName);
   let image;
   if (fs.existsSync(imagePath)) {
     const fileData = fs.readFileSync(imagePath);
@@ -66,7 +66,7 @@ router.post('/get-multi-images', (request, response) => {
   const reqImgs = request.body.images;
   const images: (Base64Image | null | undefined)[] = reqImgs.map((imageName: string | null) => {
     if (imageName) {
-      const imagePath = path.join(process.cwd(), 'uploads/image', imageName);
+      const imagePath = path.join(process.env.UPLOAD_PATH as string, imageName);
       if (fs.existsSync(imagePath)) {
         const fileData = fs.readFileSync(imagePath);
         return {
