@@ -32,5 +32,7 @@ jobs:
           touch .env
           echo "${{ secrets.PROD_ENV_FILE }}" > .env
 
+      - name: Add PM2 to PATH
+        run: export PATH=$PATH:/home/ubuntu/.nvm/versions/node/v20.17.0/bin/pm2
       - name: Restart PM2
         run: pm2 restart BackendAPI
