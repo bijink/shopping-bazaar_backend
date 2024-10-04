@@ -96,8 +96,4 @@ router.use('/user', UserRoutes);
 router.use('/admin', authenticateJwtToken, authenticateUserRole('admin'), AdminRoutes);
 router.use('/customer', authenticateJwtToken, authenticateUserRole('customer'), CustomerRoutes);
 
-router.get('/test', (req, res) => {
-  res.send({ b: 'asfdkl' }).status(201);
-});
-
 export default router;
